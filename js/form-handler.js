@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const formStatus = document.getElementById('form-status');
     
     if (contactForm) {
-        // TODO: Sign up at formspree.io and replace 'your-formspree-id' with your actual form ID
-        contactForm.setAttribute('action', 'https://formspree.io/f/your-formspree-id');
+        // Use the provided Formspree ID
+        contactForm.setAttribute('action', 'https://formspree.io/f/xkgjqnwy');
         contactForm.setAttribute('method', 'POST');
         
         contactForm.addEventListener('submit', function(e) {
