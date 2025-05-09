@@ -787,26 +787,47 @@ nav .container {
 }
 
 .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
     gap: 1.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    align-items: start;
+    padding: 1rem 0;
+    margin: 0 -1rem;
+    padding: 1rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-light) var(--border-color);
+}
+
+.projects-grid::-webkit-scrollbar {
+    height: 8px;
+}
+
+.projects-grid::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+.projects-grid::-webkit-scrollbar-thumb {
+    background-color: var(--primary-light);
+    border-radius: 10px;
 }
 
 .project-card {
+    flex: 0 0 auto;
+    width: 350px;
+    scroll-snap-align: start;
     background-color: var(--card-bg);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     transition: var(--transition);
     border: 1px solid var(--border-color);
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
     display: flex;
     flex-direction: column;
     position: relative;
-    height: 100%;
+    height: 600px;
 }
 
 .project-card:hover {
@@ -951,7 +972,7 @@ nav .container {
 .gei-card .project-image-container {
     background-color: transparent;
     padding: 0;
-    height: 350px;
+    height: 250px;
     display: block;
 }
 
@@ -2282,7 +2303,7 @@ footer p {
 
 .project-image-container {
     width: 100%;
-    height: 350px;
+    height: 250px;
     overflow: hidden;
     border-radius: 12px 12px 0 0;
     position: relative;
@@ -2301,7 +2322,7 @@ footer p {
 .gei-card .project-image-container {
     background-color: transparent;
     padding: 0;
-    height: 350px;
+    height: 250px;
     display: block;
 }
 
@@ -2373,4 +2394,15 @@ footer p {
 .paper-link a:hover {
     background-color: rgba(3, 29, 68, 0.15);
     transform: translateY(-2px);
+}
+
+/* Add a hint for horizontal scrolling */
+.projects .container::after {
+    content: "→ Scroll for more projects";
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: var(--text-light);
+    font-style: italic;
+    font-size: 0.9rem;
 } 
