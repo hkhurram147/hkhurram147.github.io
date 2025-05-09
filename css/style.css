@@ -827,7 +827,15 @@ nav .container {
     display: flex;
     flex-direction: column;
     position: relative;
-    height: 600px;
+    height: auto;
+    min-height: 600px;
+    max-height: none;
+    transition: all 0.3s ease;
+}
+
+.project-card.expanded {
+    height: auto;
+    max-height: none;
 }
 
 .project-card:hover {
@@ -984,7 +992,7 @@ nav .container {
 }
 
 .project-summary {
-    display: none; /* Hidden by default */
+    display: none;
 }
 
 .project-card.expanded .project-summary {
@@ -997,10 +1005,15 @@ nav .container {
     font-size: 0.85rem;
     position: relative;
     z-index: 2;
-    display: block;
+    display: none;
     border-top: 1px dashed rgba(0, 0, 0, 0.1);
     margin-top: 0.5rem;
     line-height: 1.5;
+}
+
+.project-card.expanded .project-expanded-content {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .project-expanded-content p {
@@ -2398,7 +2411,49 @@ footer p {
 
 /* Add a hint for horizontal scrolling */
 .projects .container::after {
-    content: "→ Scroll for more projects";
+    content: "→ Swipe for more projects";
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: var(--text-light);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Global scrollbar styling */
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+    display: none;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 0;
+    display: none;
+}
+
+/* Firefox scrollbar hiding */
+* {
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+}
+
+/* Projects section scrollbar specific styling */
+.projects-grid::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+    width: 0;
+    height: 0;
+}
+
+/* Keep the scroll for more projects hint since scrollbar is now invisible */
+.projects .container::after {
+    content: "→ Swipe for more projects";
     display: block;
     text-align: center;
     margin-top: 1rem;

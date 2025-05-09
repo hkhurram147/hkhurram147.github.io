@@ -58,6 +58,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 'See Less <i class="fas fa-chevron-up"></i>' : 
                 'See More <i class="fas fa-chevron-down"></i>';
             
+            // Ensure that if expanded, the card is fully visible
+            if (isExpanded) {
+                // Scroll to keep the project card in view after expansion
+                setTimeout(() => {
+                    const cardRect = projectCard.getBoundingClientRect();
+                    if (cardRect.bottom > window.innerHeight) {
+                        window.scrollBy({
+                            top: Math.min(100, cardRect.bottom - window.innerHeight + 20),
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 50);
+            }
+            
             console.log('Toggled project card expanded state:', isExpanded);
         });
     });
