@@ -34,11 +34,6 @@
                     <li><a href="#projects">Projects</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
-                <div class="burger">
-                    <div class="line1"></div>
-                    <div class="line2"></div>
-                    <div class="line3"></div>
-                </div>
             </div>
         </nav>
     </header>
@@ -64,27 +59,6 @@
                 <div class="profile-area">
                     <div class="profile-circle">
                         <img src="images/IMG_0930.jpg" alt="Hassan Khurram">
-                    </div>
-                    <div class="feature-badge badge-ml">
-                        <i class="fas fa-brain"></i>
-                        <div class="feature-badge-content">
-                            <h4>Machine Learning</h4>
-                            <p>AI Specialist</p>
-                        </div>
-                    </div>
-                    <div class="feature-badge badge-pm">
-                        <i class="fas fa-tasks"></i>
-                        <div class="feature-badge-content">
-                            <h4>Data Engineering</h4>
-                            <p>Pipelines Expert</p>
-                        </div>
-                    </div>
-                    <div class="feature-badge badge-ds">
-                        <i class="fas fa-chart-bar"></i>
-                        <div class="feature-badge-content">
-                            <h4>Data Science</h4>
-                            <p>ML Specialist</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -346,7 +320,6 @@
                         <div class="timeline-description-full">
                             <p>Designed, tested, and deployed machine learning models for marketing optimization, boosting predictive accuracy by over 15%. Engineered scalable data pipelines using BigQuery, Vertex AI, and PySpark, reducing processing time by 50%. Built and maintained MLOps pipelines with Apache Airflow and created dashboards using Power BI.</p>
                         </div>
-                        <button class="timeline-expand-btn">See More <i class="fas fa-chevron-down"></i></button>
                     </div>
                 </div>
                 
@@ -370,7 +343,6 @@
                         <div class="timeline-description-full">
                             <p>Researched and developed a scalable novel clustering algorithm leveraging mixed-integer programming for large operational datasets. Co-authored publication accepted for the AAAI 2023 Conference. Engineered mathematical optimization scripts to refine clustering methods, improving robustness to outliers.</p>
                         </div>
-                        <button class="timeline-expand-btn">See More <i class="fas fa-chevron-down"></i></button>
                     </div>
                 </div>
                 
@@ -396,7 +368,6 @@
                         <div class="timeline-description-full">
                             <p>Led a team of 5 students working on audio sequence modeling for noise pollution detection. Optimized a pre-trained deep learning model, boosting classification accuracy by 20%. Delivered insights to Aercoustics Engineering Ltd. for environmental analysis.</p>
                         </div>
-                        <button class="timeline-expand-btn">See More <i class="fas fa-chevron-down"></i></button>
                     </div>
                 </div>
             </div>
@@ -519,7 +490,65 @@
         <div class="container">
             <h2 class="section-title">Projects</h2>
             <div class="projects-grid">
+                
                 <div class="project-card">
+                    <div class="project-image-container">
+                        <img src="project_images/image_room.png" alt="Home AI Interior Designer">
+                    </div>
+                    <div class="project-header">
+                        <div class="project-logo">
+                            <img src="https://placehold.co/100x100/031D44/ffffff?text=AI" alt="Home AI">
+                        </div>
+                        <span class="project-badge">Personal</span>
+                    </div>
+                    <div class="project-content">
+                        <h3>Home AI Interior Designer</h3>
+                        <div class="project-tech-stack">
+                            <span>Stable Diffusion</span>
+                            <span>GPT-4</span>
+                            <span>React</span>
+                            <span>Flask</span>
+                            <span>Python</span>
+                            <span>DALL-E 3</span>
+                        </div>
+                        <button class="see-more-btn">
+                            See More <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="project-summary">
+                            <div class="project-section">
+                                <h4><i class="fas fa-question-circle"></i> Challenge</h4>
+                                <p>Visualizing bedroom designs based on user-provided style descriptions is often difficult and requires expensive interior design consultations.</p>
+                            </div>
+                            <div class="project-section">
+                                <h4><i class="fas fa-lightbulb"></i> Approach</h4>
+                                <p>Created an app that lets users input their preferred bedroom style, then uses AI to generate photorealistic bedroom design visualizations.</p>
+                            </div>
+                            <div class="project-section">
+                                <h4><i class="fas fa-chart-line"></i> Outcome</h4>
+                                <p>Won the AMD Canada-wide Innovation Showcase Competition with this project. Users can generate customized bedroom designs in seconds without design expertise.</p>
+                            </div>
+                        </div>
+                        <div class="project-expanded-content">
+                            <p>The Home AI project leverages cutting-edge AI technologies to make bedroom design accessible to everyone. This web application allows users to enter natural language descriptions of their ideal bedroom styling and generates photorealistic visualizations of those designs.</p>
+                            
+                            <p>Key technical features:</p>
+                            <ul>
+                                <li>Fine-tuned Stable Diffusion model specifically for interior bedroom designs</li>
+                                <li>Flask backend with efficient prompt engineering and image processing pipeline</li>
+                                <li>React frontend for intuitive user experience and responsive design</li>
+                                <li>GPT-4 integration to translate user descriptions into optimal prompts for image generation</li>
+                                <li>Advanced image refinement techniques to ensure photorealistic outputs</li>
+                            </ul>
+                            
+                            <p>This project won the AMD Canada-wide Innovation Showcase Competition for its innovative approach to accessibility in interior design. It demonstrates the potential of AI to democratize creative fields previously limited to professionals with specialized training.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="project-card gei-card">
+                    <div class="project-image-container">
+                        <img src="project_images/gei_chatbot.png" alt="RAG Chatbot for Engineering Reports">
+                    </div>
                     <div class="project-header">
                         <div class="project-logo">
                             <img src="images/GEIlg_800_800_s.png" alt="GEI Consultants">
@@ -534,6 +563,9 @@
                             <span>LLMs</span>
                             <span>APIs</span>
                         </div>
+                        <button class="see-more-btn">
+                            See More <i class="fas fa-chevron-down"></i>
+                        </button>
                         <div class="project-summary">
                             <div class="project-section">
                                 <h4><i class="fas fa-question-circle"></i> Challenge</h4>
@@ -548,9 +580,6 @@
                                 <p>Delivered a system capable of processing 200+ documents, received approval for cloud deployment after successful demo to VPs and senior leadership.</p>
                             </div>
                         </div>
-                        <button class="project-toggle-btn">
-                            See More Details <i class="fas fa-chevron-down"></i>
-                        </button>
                         <div class="project-expanded-content">
                             <p>This capstone project was developed for GEI Consultants, Inc., a leading engineering consulting firm specializing in environmental, water resources, and geotechnical projects. The problem they faced was information retrieval from thousands of technical reports accumulated over decades.</p>
                             
@@ -569,55 +598,9 @@
                 </div>
                 
                 <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-logo">
-                            <img src="images/images.png" alt="Scotiabank">
-                        </div>
-                        <span class="project-badge">Scotiabank</span>
+                    <div class="project-image-container">
+                        <img src="project_images/clustering.png.png" alt="Scalable Clustering Algorithm">
                     </div>
-                    <div class="project-content">
-                        <h3>Predictive ML Models for Marketing Optimization</h3>
-                        <div class="project-tech-stack">
-                            <span>BigQuery</span>
-                            <span>Vertex AI</span>
-                            <span>PySpark</span>
-                            <span>Airflow</span>
-                        </div>
-                        <div class="project-summary">
-                            <div class="project-section">
-                                <h4><i class="fas fa-question-circle"></i> Challenge</h4>
-                                <p>Marketing teams needed better predictive capabilities to optimize customer targeting and retention strategies.</p>
-                            </div>
-                            <div class="project-section">
-                                <h4><i class="fas fa-lightbulb"></i> Approach</h4>
-                                <p>Designed, tested, and deployed machine learning models for churn prediction, propensity modeling, and customer segmentation.</p>
-                            </div>
-                            <div class="project-section">
-                                <h4><i class="fas fa-chart-line"></i> Outcome</h4>
-                                <p>Boosted predictive accuracy by over 15%, providing critical consumer insights for 10MM+ customers and reducing data processing time by 50%.</p>
-                            </div>
-                        </div>
-                        <button class="project-toggle-btn">
-                            See More Details <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="project-expanded-content">
-                            <p>During my internship at Scotiabank, I worked on enterprise-scale customer intelligence solutions that would drive targeted marketing campaigns and increase customer retention.</p>
-                            
-                            <p>Key contributions included:</p>
-                            <ul>
-                                <li>Development of gradient boosting models (XGBoost) for customer churn prediction with 87% AUC</li>
-                                <li>Creation of multi-class propensity models to predict next-best-product recommendations</li>
-                                <li>Implementation of unsupervised clustering algorithms for customer segmentation</li>
-                                <li>Feature engineering pipeline processing terabytes of transaction and behavioral data</li>
-                                <li>A/B testing framework to validate model effectiveness in real campaigns</li>
-                            </ul>
-                            
-                            <p>The models were deployed to production using MLOps best practices with CI/CD pipelines and automated monitoring. Marketing campaigns using these models showed a 23% increase in conversion rates compared to traditional methods.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="project-card">
                     <div class="project-header">
                         <div class="project-logo">
                             <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="University of Toronto">
@@ -632,6 +615,14 @@
                             <span>Python</span>
                             <span>Visualization</span>
                         </div>
+                        <div class="paper-link">
+                            <a href="https://ojs.aaai.org/index.php/AAAI/article/view/25857" target="_blank" rel="noopener noreferrer">
+                                <i class="fas fa-file-alt"></i> Published in AAAI 2023 Conference
+                            </a>
+                        </div>
+                        <button class="see-more-btn">
+                            See More <i class="fas fa-chevron-down"></i>
+                        </button>
                         <div class="project-summary">
                             <div class="project-section">
                                 <h4><i class="fas fa-question-circle"></i> Challenge</h4>
@@ -646,9 +637,6 @@
                                 <p>Co-authored publication accepted for AAAI 2023 Conference, created a more robust clustering method that handles outliers and cluster imbalances better.</p>
                             </div>
                         </div>
-                        <button class="project-toggle-btn">
-                            See More Details <i class="fas fa-chevron-down"></i>
-                        </button>
                         <div class="project-expanded-content">
                             <p>This research project addressed fundamental limitations in existing clustering algorithms. Working in the Data-Driven Decision Making Lab at the University of Toronto, I developed a novel approach to the k-center clustering problem using mixed-integer linear programming.</p>
                             
@@ -667,6 +655,9 @@
                 </div>
                 
                 <div class="project-card">
+                    <div class="project-image-container">
+                        <img src="project_images/audio_seq.png.png" alt="Audio Sequence Modeling">
+                    </div>
                     <div class="project-header">
                         <div class="project-logo">
                             <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="UofT ML Club">
@@ -681,6 +672,9 @@
                             <span>Spectrograms</span>
                             <span>TensorFlow</span>
                         </div>
+                        <button class="see-more-btn">
+                            See More <i class="fas fa-chevron-down"></i>
+                        </button>
                         <div class="project-summary">
                             <div class="project-section">
                                 <h4><i class="fas fa-question-circle"></i> Challenge</h4>
@@ -695,9 +689,6 @@
                                 <p>Boosted classification accuracy by 20%, delivering data-driven solutions to support environmental decision-making for Aercoustics Engineering Ltd.</p>
                             </div>
                         </div>
-                        <button class="project-toggle-btn">
-                            See More Details <i class="fas fa-chevron-down"></i>
-                        </button>
                         <div class="project-expanded-content">
                             <p>As project lead for the University of Toronto Machine Intelligence Club, I led a team of 5 students to develop an audio classification system for environmental noise monitoring. This project was conducted in collaboration with Aercoustics Engineering Ltd.</p>
                             
@@ -714,6 +705,7 @@
                         </div>
                     </div>
                 </div>
+                
             </div>
         </div>
     </section>
@@ -764,7 +756,7 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2024 Hassan Khurram. All rights reserved.</p>
+            <p>&copy; 2025 Hassan Khurram. All rights reserved.</p>
             <div class="social-links">
                 <a href="https://linkedin.com/in/hkhurram147" target="_blank"><i class="fab fa-linkedin"></i></a>
                 <a href="https://github.com/hkhurram147" target="_blank"><i class="fab fa-github"></i></a>

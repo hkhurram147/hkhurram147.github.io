@@ -39,14 +39,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isExpanded = card.classList.contains('education-expanded');
                 this.innerHTML = isExpanded ? 
                     'Show Less <i class="fas fa-chevron-up"></i>' : 
-                    'Show More <i class="fas fa-chevron-down"></i>';
+                    'View Key Courses <i class="fas fa-chevron-down"></i>';
             });
         }
     });
 
-    // Project card expand functionality - with toggle button
-    const projectToggleBtns = document.querySelectorAll('.project-toggle-btn');
-    projectToggleBtns.forEach(btn => {
+    // Project card expand functionality - now for see-more-btn
+    const seeMoreBtns = document.querySelectorAll('.see-more-btn');
+    console.log('Found', seeMoreBtns.length, 'See More buttons');
+    seeMoreBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const projectCard = this.closest('.project-card');
             projectCard.classList.toggle('expanded');
@@ -54,9 +55,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update button text
             const isExpanded = projectCard.classList.contains('expanded');
             this.innerHTML = isExpanded ? 
-                'Show Less <i class="fas fa-chevron-up"></i>' : 
-                'See More Details <i class="fas fa-chevron-down"></i>';
+                'See Less <i class="fas fa-chevron-up"></i>' : 
+                'See More <i class="fas fa-chevron-down"></i>';
+            
+            console.log('Toggled project card expanded state:', isExpanded);
         });
+    });
+
+    // Make project cards visible by default
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.classList.add('visible');
     });
 
     // Skills section expand button functionality
@@ -153,8 +161,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Observe timeline items, project cards, and other animated elements
     document.querySelectorAll('.timeline-item, .project-card, .skill-category, .education-card').forEach(item => {
         animateOnScroll.observe(item);
+        
+        // Ensure project cards don't start expanded
+        if (item.classList.contains('project-card')) {
+            item.classList.remove('expanded');
+        }
     });
     
+    // Explicitly ensure all project expanded contents are initially hidden
+    document.querySelectorAll('.project-expanded-content').forEach(content => {
+        content.style.display = 'none';
+    });
+
     // Contact form submission handling
     const contactForm = document.getElementById('contactForm');
     const formStatus = document.getElementById('form-status');
