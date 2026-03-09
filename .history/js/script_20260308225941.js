@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     item.classList.remove('expanded');
                     const expandedBtn = item.querySelector('.timeline-expand-btn');
                     if (expandedBtn) {
-                        expandedBtn.innerHTML = 'View Details <i class="fas fa-chevron-down"></i>';
+                        expandedBtn.innerHTML = 'See More <i class="fas fa-chevron-down"></i>';
                     }
                 }
             });
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             this.innerHTML = willExpand ? 
                 'Show Less <i class="fas fa-chevron-up"></i>' : 
-                'View Details <i class="fas fa-chevron-down"></i>';
+                'See More <i class="fas fa-chevron-down"></i>';
         });
     });
 

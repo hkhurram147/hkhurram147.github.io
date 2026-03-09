@@ -1762,7 +1762,7 @@ nav .container {
 .contact-item:hover {
     transform: translateY(-3px);
     box-shadow: var(--box-shadow-hover);
-    border-color: rgba(45, 106, 79, 0.2);
+    border-color: rgba(99, 102, 241, 0.2);
 }
 
 .contact-item i {
@@ -1804,7 +1804,7 @@ nav .container {
 
 .contact-form:hover {
     box-shadow: var(--box-shadow-hover);
-    border-color: rgba(45, 106, 79, 0.2);
+    border-color: rgba(99, 102, 241, 0.2);
 }
 
 .form-group {
@@ -2408,7 +2408,7 @@ footer p {
     font-size: 0.9rem;
     padding: 0.5rem 0.8rem;
     border-radius: 6px;
-    background-color: rgba(45, 106, 79, 0.08);
+    background-color: rgba(99, 102, 241, 0.08);
     transition: all 0.2s ease;
     text-decoration: none;
 }
@@ -2418,7 +2418,7 @@ footer p {
 }
 
 .paper-link a:hover {
-    background-color: rgba(45, 106, 79, 0.15);
+    background-color: rgba(99, 102, 241, 0.15);
     transform: translateY(-2px);
 }
 
@@ -2433,10 +2433,10 @@ footer p {
     font-size: 0.9rem;
 }
 
-/* ── Revamped timeline (modern cards + green accent) ── */
+/* ── Revamped timeline (modern cards + indigo accent) ── */
 .timeline-section {
     overflow: hidden;
-    background: linear-gradient(180deg, #f8fafc 0%, #ecfdf5 50%, #f8fafc 100%);
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 50%, #f8fafc 100%);
     padding: 6rem 0;
 }
 
@@ -2459,7 +2459,7 @@ footer p {
     bottom: 24px;
     width: 2px;
     height: auto;
-    background: linear-gradient(180deg, #95d5b2, #e2e8f0 80%, transparent);
+    background: linear-gradient(180deg, #c7d2fe, #e2e8f0 80%, transparent);
     border-radius: 1px;
 }
 
@@ -2479,8 +2479,8 @@ footer p {
     top: 24px;
     width: 14px;
     height: 14px;
-    background: #2d6a4f;
-    box-shadow: 0 0 0 4px #ffffff, 0 0 0 6px #95d5b2;
+    background: #6366f1;
+    box-shadow: 0 0 0 4px #ffffff, 0 0 0 6px #c7d2fe;
 }
 
 .timeline-marker::after {
@@ -2491,8 +2491,8 @@ footer p {
 .timeline-item.active .timeline-marker,
 .timeline-item.expanded .timeline-marker {
     transform: scale(1.35);
-    background: #1b4332;
-    box-shadow: 0 0 0 4px #ffffff, 0 0 0 6px #40916c, 0 0 16px rgba(45, 106, 79, 0.35);
+    background: #4f46e5;
+    box-shadow: 0 0 0 4px #ffffff, 0 0 0 6px #818cf8, 0 0 16px rgba(99, 102, 241, 0.35);
 }
 
 .timeline-date {
@@ -2502,7 +2502,7 @@ footer p {
     font-size: 0.85rem;
     font-weight: 600;
     line-height: 1.4;
-    color: #2d6a4f;
+    color: #6366f1;
     letter-spacing: 0.02em;
     white-space: nowrap;
     text-align: right;
@@ -2515,7 +2515,7 @@ footer p {
     overflow: visible;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-left: 3px solid #2d6a4f;
+    border-left: 3px solid #6366f1;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
     transition: all 0.25s ease;
 }
@@ -2529,9 +2529,9 @@ footer p {
 .timeline-item.active .timeline-content,
 .timeline-item.expanded .timeline-content {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(45, 106, 79, 0.08);
-    border-color: #95d5b2;
-    border-left-color: #1b4332;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(99, 102, 241, 0.08);
+    border-color: #c7d2fe;
+    border-left-color: #4f46e5;
 }
 
 .timeline-content::before {
@@ -2573,9 +2573,9 @@ footer p {
     font-size: 0.78rem;
     font-weight: 600;
     line-height: 1;
-    color: #2d6a4f;
-    background: #d8f3dc;
-    border: 1px solid #95d5b2;
+    color: #6366f1;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
     border-radius: 999px;
 }
 
@@ -2596,16 +2596,16 @@ footer p {
     padding: 0.2rem 0.55rem;
     font-size: 0.73rem;
     font-weight: 600;
-    background: #ecfdf5;
-    border: 1px solid #b7e4c7;
-    color: #2d6a4f;
+    background: #f5f3ff;
+    border: 1px solid #e0e7ff;
+    color: #7c3aed;
 }
 
 .timeline-key-skills span:hover {
-    background: #2d6a4f;
+    background: #6366f1;
     color: white;
-    border-color: #2d6a4f;
-    box-shadow: 0 2px 8px rgba(45, 106, 79, 0.25);
+    border-color: #6366f1;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
     transform: translateY(-1px);
 }
 
@@ -2692,7 +2692,7 @@ footer p {
     width: 5px;
     height: 5px;
     border-radius: 999px;
-    background: #40916c;
+    background: #818cf8;
 }
 
 .timeline-item.expanded {
@@ -2701,13 +2701,13 @@ footer p {
 
 .timeline-expand-btn {
     margin-top: 0.5rem;
-    color: #2d6a4f;
+    color: #6366f1;
     font-size: 0.82rem;
     font-weight: 600;
 }
 
 .timeline-expand-btn:hover {
-    color: #1b4332;
+    color: #4f46e5;
 }
 
 @media screen and (max-width: 768px) {
@@ -2727,7 +2727,7 @@ footer p {
         top: 5px;
         width: 12px;
         height: 12px;
-        box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #95d5b2;
+        box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #c7d2fe;
     }
 
     .timeline-date {
@@ -2736,13 +2736,13 @@ footer p {
         white-space: normal;
         text-align: left;
         font-size: 0.8rem;
-        color: #2d6a4f;
+        color: #6366f1;
     }
 
     .timeline-content {
         margin-left: 2rem;
         padding: 1.1rem;
-        border-left: 3px solid #2d6a4f;
+        border-left: 3px solid #6366f1;
         border-radius: 14px;
         background: #ffffff;
         border-top: 1px solid #e2e8f0;
