@@ -35,6 +35,11 @@
                     <li><a href="#projects">Projects</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
+                <div class="burger" id="burger" aria-label="Toggle menu">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
             </div>
         </nav>
     </header>
@@ -134,10 +139,12 @@
                     <div class="timeline-marker"></div>
                     <div class="timeline-date">Sep 2024 - Present</div>
                     <div class="timeline-content">
-                        <div class="timeline-logo">
-                            <img src="images/images.png" alt="Scotiabank">
+                        <div class="timeline-header-row">
+                            <h3 class="timeline-title">Scotiabank</h3>
+                            <div class="timeline-logo">
+                                <img src="images/images.png" alt="Scotiabank">
+                            </div>
                         </div>
-                        <h3 class="timeline-title">Scotiabank</h3>
                         <div class="timeline-role-block">
                             <p class="timeline-role">Developer</p>
                             <p class="timeline-team">Cloud Engineering · Core Banking Technology</p>
@@ -164,10 +171,12 @@
                     <div class="timeline-marker"></div>
                     <div class="timeline-date">May 2023 - Aug 2024</div>
                     <div class="timeline-content">
-                        <div class="timeline-logo">
-                            <img src="images/images.png" alt="Scotiabank">
+                        <div class="timeline-header-row">
+                            <h3 class="timeline-title">Scotiabank</h3>
+                            <div class="timeline-logo">
+                                <img src="images/images.png" alt="Scotiabank">
+                            </div>
                         </div>
-                        <h3 class="timeline-title">Scotiabank</h3>
                         <div class="timeline-role-block">
                             <p class="timeline-role">Data Scientist Intern</p>
                             <p class="timeline-team">Marketing Analytics · Machine Learning Delivery</p>
@@ -194,10 +203,12 @@
                     <div class="timeline-marker"></div>
                     <div class="timeline-date">May 2022 - Aug 2022</div>
                     <div class="timeline-content">
-                        <div class="timeline-logo">
-                            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="University of Toronto">
+                        <div class="timeline-header-row">
+                            <h3 class="timeline-title">University of Toronto</h3>
+                            <div class="timeline-logo">
+                                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="University of Toronto">
+                            </div>
                         </div>
-                        <h3 class="timeline-title">University of Toronto</h3>
                         <div class="timeline-role-block">
                             <p class="timeline-role">Undergraduate Research Assistant</p>
                             <p class="timeline-team">Optimization Research · Applied ML</p>
@@ -226,10 +237,12 @@
                     <div class="timeline-marker"></div>
                     <div class="timeline-date">Jan 2021 - Apr 2021</div>
                     <div class="timeline-content">
-                        <div class="timeline-logo">
-                            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="UofT ML Club">
+                        <div class="timeline-header-row">
+                            <h3 class="timeline-title">University of Toronto Machine Intelligence Club</h3>
+                            <div class="timeline-logo">
+                                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="UofT ML Club">
+                            </div>
                         </div>
-                        <h3 class="timeline-title">University of Toronto Machine Intelligence Club</h3>
                         <div class="timeline-role-block">
                             <p class="timeline-role">Project Lead</p>
                             <p class="timeline-team">Applied Audio ML · Student Team Leadership</p>
@@ -257,113 +270,87 @@
     <section id="skills" class="skills">
         <div class="container">
             <h2 class="section-title">Skills</h2>
-            <div class="skills-container">
-                <div class="skill-category">
-                    <h3>Programming & Automation</h3>
-                    <div class="skills-grid skills-expandable">
-                        <div class="skill-tag">Python</div>
-                        <div class="skill-tag">JavaScript</div>
-                        <div class="skill-tag">Flask</div>
-                        <div class="skill-tag">PySpark</div>
-                        <div class="skill-tag">Apache Airflow</div>
-                        <div class="skill-tag">Docker</div>
-                        <div class="skill-tag">CI/CD</div>
-                        <div class="skill-tag">Git</div>
-                        <div class="skill-tag hidden-skill">Object-Oriented Programming</div>
-                        <div class="skill-tag hidden-skill">C</div>
-                        <div class="skill-tag hidden-skill">R</div>
-                        <div class="skill-tag hidden-skill">ARM Assembly</div>
-                        <div class="skill-tag hidden-skill">MATLAB</div>
-                        <div class="skill-tag hidden-skill">Unit Testing</div>
-                        <div class="skill-tag hidden-skill">Kubernetes</div>
+            <div class="skills-map">
+
+                <!-- Programming -->
+                <div class="skill-map-card smc-blue">
+                    <div class="smc-header">
+                        <div class="smc-icon"><i class="fas fa-code"></i></div>
+                        <div>
+                            <h3>Programming & Automation</h3>
+                        </div>
                     </div>
-                    <button class="skills-expand-btn">Show More <i class="fas fa-chevron-down"></i></button>
+                    <div class="smc-tags">
+                        <span>Python</span><span>Java</span><span>JavaScript</span>
+                        <span>Spring Boot</span><span>Flask</span><span>PySpark</span>
+                        <span>Apache Airflow</span><span>Docker</span><span>Kubernetes</span>
+                        <span>CI/CD</span><span>Git</span><span>C</span><span>R</span><span>MATLAB</span>
+                    </div>
                 </div>
 
-                <div class="skill-category">
-                    <h3>Database Development</h3>
-                    <div class="skills-grid skills-expandable">
-                        <div class="skill-tag">SQL</div>
-                        <div class="skill-tag">Data Modeling</div>
-                        <div class="skill-tag">Data Validation</div>
-                        <div class="skill-tag">Execution Plan Analysis</div>
-                        <div class="skill-tag hidden-skill">Data Profiling</div>
-                        <div class="skill-tag hidden-skill">Data Models</div>
-                        <div class="skill-tag hidden-skill">Data Cleaning</div>
-                        <div class="skill-tag hidden-skill">Microsoft Excel</div>
+                <!-- Machine Learning -->
+                <div class="skill-map-card smc-green">
+                    <div class="smc-header">
+                        <div class="smc-icon"><i class="fas fa-brain"></i></div>
+                        <div>
+                            <h3>Machine Learning & AI</h3>
+                        </div>
                     </div>
-                    <button class="skills-expand-btn">Show More <i class="fas fa-chevron-down"></i></button>
+                    <div class="smc-tags">
+                        <span>Scikit-learn</span><span>Pandas</span><span>NumPy</span>
+                        <span>TensorFlow</span><span>PyTorch</span><span>XGBoost</span>
+                        <span>Deep Learning</span><span>LLMs</span><span>Generative AI</span>
+                        <span>MLOps</span><span>RAG</span><span>Computer Vision</span>
+                        <span>Predictive Modeling</span><span>Optimization</span>
+                    </div>
                 </div>
 
-                <div class="skill-category">
-                    <h3>Cloud & Tools</h3>
-                    <div class="skills-grid skills-expandable">
-                        <div class="skill-tag">Google Cloud Platform</div>
-                        <div class="skill-tag">BigQuery</div>
-                        <div class="skill-tag">Cloud Storage</div>
-                        <div class="skill-tag">Azure</div>
-                        <div class="skill-tag hidden-skill">Data Factory</div>
-                        <div class="skill-tag hidden-skill">Databricks</div>
-                        <div class="skill-tag hidden-skill">Power BI</div>
-                        <div class="skill-tag hidden-skill">Confluence</div>
-                        <div class="skill-tag hidden-skill">Microsoft Office</div>
-                        <div class="skill-tag hidden-skill">APIs</div>
+                <!-- Cloud & Tools -->
+                <div class="skill-map-card smc-teal">
+                    <div class="smc-header">
+                        <div class="smc-icon"><i class="fas fa-cloud"></i></div>
+                        <div>
+                            <h3>Cloud & Tools</h3>
+                        </div>
                     </div>
-                    <button class="skills-expand-btn">Show More <i class="fas fa-chevron-down"></i></button>
+                    <div class="smc-tags">
+                        <span>Google Cloud Platform</span><span>AWS</span><span>Azure</span>
+                        <span>BigQuery</span><span>Databricks</span><span>Vertex AI</span>
+                        <span>Power BI</span><span>Jira</span><span>Confluence</span><span>APIs</span>
+                    </div>
                 </div>
 
-                <div class="skill-category">
-                    <h3>Machine Learning & Data Analytics</h3>
-                    <div class="skills-grid skills-expandable">
-                        <div class="skill-tag">Scikit-learn</div>
-                        <div class="skill-tag">Pandas</div>
-                        <div class="skill-tag">NumPy</div>
-                        <div class="skill-tag">TensorFlow</div>
-                        <div class="skill-tag">PyTorch</div>
-                        <div class="skill-tag">XGBoost</div>
-                        <div class="skill-tag hidden-skill">Generative AI</div>
-                        <div class="skill-tag hidden-skill">LLMs</div>
-                        <div class="skill-tag hidden-skill">Optimization</div>
-                        <div class="skill-tag hidden-skill">MLOps</div>
-                        <div class="skill-tag hidden-skill">Data Science</div>
-                        <div class="skill-tag hidden-skill">Deep Learning</div>
-                        <div class="skill-tag hidden-skill">Computer Vision</div>
-                        <div class="skill-tag hidden-skill">Artificial Intelligence</div>
-                        <div class="skill-tag hidden-skill">Neural Networks</div>
-                        <div class="skill-tag hidden-skill">Machine Learning</div>
-                        <div class="skill-tag hidden-skill">Predictive Modeling</div>
-                        <div class="skill-tag hidden-skill">Data Mining</div>
-                        <div class="skill-tag hidden-skill">Retrieval-Augmented Generation (RAG)</div>
-                        <div class="skill-tag hidden-skill">Information Retrieval</div>
-                        <div class="skill-tag hidden-skill">Linear Programming</div>
-                        <div class="skill-tag hidden-skill">Gurobi</div>
-                        <div class="skill-tag hidden-skill">Optimization Techniques</div>
+                <!-- Data & Databases -->
+                <div class="skill-map-card smc-violet">
+                    <div class="smc-header">
+                        <div class="smc-icon"><i class="fas fa-database"></i></div>
+                        <div>
+                            <h3>Data & Databases</h3>
+                        </div>
                     </div>
-                    <button class="skills-expand-btn">Show More <i class="fas fa-chevron-down"></i></button>
+                    <div class="smc-tags">
+                        <span>SQL</span><span>Data Modeling</span><span>Data Validation</span>
+                        <span>Data Cleaning</span><span>Data Profiling</span>
+                        <span>Execution Plan Analysis</span><span>Microsoft Excel</span>
+                    </div>
                 </div>
 
-                <div class="skill-category">
-                    <h3>Professional Skills</h3>
-                    <div class="skills-grid skills-expandable">
-                        <div class="skill-tag"><i class="fas fa-users"></i> Team Leadership</div>
-                        <div class="skill-tag"><i class="fas fa-comments"></i> Communication</div>
-                        <div class="skill-tag"><i class="fas fa-tasks"></i> Project Management</div>
-                        <div class="skill-tag"><i class="fas fa-lightbulb"></i> Problem Solving</div>
-                        <div class="skill-tag"><i class="fas fa-chart-line"></i> Data Storytelling</div>
-                        <div class="skill-tag"><i class="fas fa-clock"></i> Time Management</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-book"></i> Continuous Learning</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-chalkboard-teacher"></i> Mentoring</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-briefcase"></i> Business Strategy</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-chart-pie"></i> Visualization</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-file-code"></i> Design Documents</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-code-branch"></i> Code Design</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-sitemap"></i> Software Development</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-calculator"></i> Mathematics</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-database"></i> Statistics</div>
-                        <div class="skill-tag hidden-skill"><i class="fas fa-atom"></i> STEM</div>
+                <!-- Professional -->
+                <div class="skill-map-card smc-amber">
+                    <div class="smc-header">
+                        <div class="smc-icon"><i class="fas fa-users"></i></div>
+                        <div>
+                            <h3>Professional Skills</h3>
+                        </div>
                     </div>
-                    <button class="skills-expand-btn">Show More <i class="fas fa-chevron-down"></i></button>
+                    <div class="smc-tags">
+                        <span>Team Leadership</span><span>Communication</span>
+                        <span>Project Management</span><span>Problem Solving</span>
+                        <span>Data Storytelling</span><span>Time Management</span>
+                        <span>Mentoring</span><span>Business Strategy</span>
+                    </div>
                 </div>
+
             </div>
         </div>
     </section>
