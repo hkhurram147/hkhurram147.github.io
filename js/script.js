@@ -1,5 +1,55 @@
 document.addEventListener('DOMContentLoaded', function() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    // Dark / light theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+
+    function applyThemeIcon() {
+        if (!themeToggle) return;
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        themeToggle.innerHTML = dark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    }
+
+    if (themeToggle) {
+        applyThemeIcon();
+        themeToggle.addEventListener('click', function() {
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            applyThemeIcon();
+        });
+    }
+
+    // Typed rotating role in the hero
+    const typedEl = document.getElementById('typedText');
+    if (typedEl) {
+        const roles = (typedEl.dataset.roles || '').split('|').filter(Boolean);
+        if (prefersReducedMotion || roles.length === 0) {
+            typedEl.textContent = roles[0] || '';
+        } else {
+            let roleIndex = 0, charIndex = 0, deleting = false;
+
+            function tick() {
+                const role = roles[roleIndex];
+                charIndex += deleting ? -1 : 1;
+                typedEl.textContent = role.slice(0, charIndex);
+
+                let delay = deleting ? 38 : 75;
+                if (!deleting && charIndex === role.length) {
+                    delay = 1800;
+                    deleting = true;
+                } else if (deleting && charIndex === 0) {
+                    deleting = false;
+                    roleIndex = (roleIndex + 1) % roles.length;
+                    delay = 350;
+                }
+                setTimeout(tick, delay);
+            }
+
+            setTimeout(tick, 900);
+        }
+    }
 
     // Smooth scrolling for in-page navigation
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
@@ -82,8 +132,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // 3D tilt on project cards (desktop pointers only)
+    if (finePointer && !prefersReducedMotion) {
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('mousemove', function(e) {
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                card.style.transform =
+                    'translateY(-5px) perspective(900px) rotateX(' + (-y * 3.5).toFixed(2) +
+                    'deg) rotateY(' + (x * 4.5).toFixed(2) + 'deg)';
+            });
+            card.addEventListener('mouseleave', function() {
+                card.style.transform = '';
+            });
+        });
+
+        // Cursor-tracking spotlight on skill cards
+        document.querySelectorAll('.skill-map-card').forEach(card => {
+            card.addEventListener('mousemove', function(e) {
+                const rect = card.getBoundingClientRect();
+                card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+                card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+            });
+        });
+    }
+
     // Scroll-driven UI: header style, progress bar, active nav link
     const header = document.querySelector('header');
+    const backToTop = document.getElementById('backToTop');
     const progressBar = document.querySelector('.scroll-progress');
     const sections = document.querySelectorAll('section[id]');
     const allNavLinks = document.querySelectorAll('.nav-links a');
@@ -94,6 +171,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (header) {
             header.classList.toggle('scrolled', scrollY > 50);
+        }
+
+        if (backToTop) {
+            backToTop.classList.toggle('visible', scrollY > 600);
         }
 
         if (progressBar) {
@@ -178,6 +259,13 @@ document.addEventListener('DOMContentLoaded', function() {
             item.classList.remove('expanded');
         }
     });
+
+    // Back to top
+    if (backToTop) {
+        backToTop.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+        });
+    }
 
     // Keep the footer year current
     document.querySelectorAll('.footer-year').forEach(el => {

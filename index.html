@@ -10,7 +10,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    
+
+    <!-- Apply saved theme before first paint to avoid a flash -->
+    <script>
+      (function () {
+        var theme = localStorage.getItem('theme');
+        if (!theme) {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XLJ28W25HB"></script>
     <script>
@@ -37,10 +48,15 @@
                     <li><a href="#projects">Projects</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
-                <div class="burger" id="burger" aria-label="Toggle menu">
-                    <div></div>
-                    <div></div>
-                    <div></div>
+                <div class="nav-actions">
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="burger" id="burger" aria-label="Toggle menu">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -50,12 +66,9 @@
         <div class="container">
             <div class="hero-content">
                 <div class="hero-text">
-                    <div class="hero-badge">
-                        <span class="badge-dot"></span>
-                        Open to new opportunities
-                    </div>
                     <p class="hello-text">Hello, I'm</p>
                     <h1 class="hero-name">Hassan <span class="last-name">Khurram</span></h1>
+                    <p class="hero-roles"><span class="typed-text" id="typedText" data-roles="Data Scientist|Machine Learning Engineer|Cloud Developer|AI Builder"></span><span class="typed-caret" aria-hidden="true"></span></p>
                     <p class="hero-subtitle">Engineering Science (Machine Learning) Graduate from The University of Toronto</p>
                     <p class="hero-description">
                         I transform data into insight and insight into action.  
@@ -78,6 +91,7 @@
                 </div>
             </div>
         </div>
+        <a href="#about" class="scroll-cue" aria-label="Scroll to About section"><i class="fas fa-chevron-down"></i></a>
     </section>
 
     <section id="about" class="about">
@@ -663,6 +677,8 @@
             </div>
         </div>
     </footer>
+
+    <button class="back-to-top" id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 
     <script src="js/script.js"></script>
     <script src="js/form-handler.js"></script>
