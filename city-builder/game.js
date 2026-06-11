@@ -1,48 +1,72 @@
 'use strict';
 
 /* =========================================================
-   CityScape — a tile-based city map builder
+   CityScape — a free-form vector city map builder
+   Roads are smooth hand-drawn curves; districts are organic
+   painted regions that auto-fill with buildings and trees.
+   World units ≈ metres.
    ========================================================= */
 
 // ---------- World ----------
-const GRID = 200;          // map is GRID x GRID tiles
-const TILE = 32;           // world units per tile
-const WORLD = GRID * TILE;
+const MAP = { x: 0, y: 0, w: 8000, h: 8000 };
+const SAVE_KEY = 'cityscape-vector-v1';
 
-const T = { EMPTY: 0, ROAD: 1, HIGHWAY: 2, WATER: 3, PARK: 4, RES: 5, COM: 6, IND: 7 };
+// ---------- Styles ----------
+const ROAD_STYLES = {
+  path:    { w: 4,  casing: 0, color: '#b3a47e', dash: [7, 5], z: 0 },
+  street:  { w: 10, casing: 3, color: '#4a4f58', casingColor: '#393d44', z: 1 },
+  avenue:  { w: 17, casing: 4, color: '#41454d', casingColor: '#33363c', z: 2,
+             lane: { color: 'rgba(255,255,255,0.8)', w: 1.3, dash: [9, 9] } },
+  highway: { w: 27, casing: 6, color: '#2d3138', casingColor: '#1d2024', z: 3,
+             lane: { color: '#e8b923', w: 1.9, dash: null } }
+};
+const ROAD_ORDER = ['path', 'street', 'avenue', 'highway'];
 
-const TOOL_TILE = { road: T.ROAD, highway: T.HIGHWAY, water: T.WATER, park: T.PARK,
-                    res: T.RES, com: T.COM, ind: T.IND, erase: T.EMPTY };
+const AREA_STYLES = {
+  water: { fill: '#3a79c9', edge: '#5e96d8', z: 0 },
+  park:  { fill: '#5d9c4c', edge: '#4f8a40', z: 1 },
+  res:   { fill: '#90b87a', edge: '#7da767', z: 2 },
+  com:   { fill: '#9aa7b5', edge: '#8694a4', z: 2 },
+  ind:   { fill: '#a8a193', edge: '#968f81', z: 2 }
+};
+const AREA_ORDER = ['water', 'park', 'res', 'com', 'ind'];
 
-const LINE_TOOLS = new Set(['road', 'highway']);   // drawn as drag-lines
-const SAVE_KEY = 'cityscape-save-v1';
+const RES_PALETTE  = ['#d8b46a', '#c98c5a', '#b9655a', '#9a7e64', '#ddc488', '#a8775f'];
+const ROOF_PALETTE = ['#8c4f3f', '#74543e', '#6e4a4a', '#5e514a'];
+const COM_PALETTE  = ['#5d83ad', '#48688c', '#6e9cc4', '#3f5d7e'];
+const IND_PALETTE  = ['#9b9484', '#8d867a', '#a59d8d'];
 
-let grid = new Uint8Array(GRID * GRID);
+const GEN_CFG = {
+  res: { spacing: 27, min: 10, max: 17, palette: RES_PALETTE },
+  com: { spacing: 38, min: 16, max: 28, palette: COM_PALETTE },
+  ind: { spacing: 48, min: 20, max: 36, palette: IND_PALETTE }
+};
+
+// ---------- City data ----------
+let city = { roads: [], areas: [], labels: [] };
+let nextId = 1;
 
 // ---------- Camera ----------
-const cam = { x: WORLD / 2, y: WORLD / 2, z: 0.6 };  // world coords at screen centre, zoom
-const ZOOM_MIN = 0.08, ZOOM_MAX = 6;
+const cam = { x: MAP.w / 2, y: MAP.h / 2, z: 0.25 };
+const ZOOM_MIN = 0.04, ZOOM_MAX = 8;
 
-// ---------- State ----------
-let tool = 'road';
-let brush = 1;
-let showGrid = true;
+// ---------- UI state ----------
+let tool = 'street';
+let showDots = true;
+let dirty = true;          // main canvas needs redraw
+let miniDirty = true;      // minimap content cache needs redraw
+let unsaved = false;
 
-let hoverTile = null;          // {x, y} under cursor
-let lineStart = null;          // tile where a road drag started
-let previewTiles = null;       // Map<index, type> shown while dragging a line
-let painting = false;          // brush-paint drag in progress
-let strokeChanges = null;      // Map<index, oldValue> for the current stroke
-
-let panState = null;           // {sx, sy, camX, camY}
+let stroke = null;         // points of road/area being drawn (world coords)
+let strokeShift = false;
+let hoverPt = null;        // world cursor position
+let snapPt = null;         // current snap target while drawing roads
+let selected = null;       // { kind: 'road'|'area'|'label', elem }
+let dragState = null;      // moving / endpoint-dragging / panning / erasing
 let spaceHeld = false;
 
-const undoStack = [];
-const redoStack = [];
-const UNDO_LIMIT = 120;
-
-let minimapDirty = true;
-let unsaved = false;
+const undoStack = [], redoStack = [];
+const UNDO_LIMIT = 100;
 
 // ---------- DOM ----------
 const canvas = document.getElementById('map');
@@ -52,536 +76,811 @@ const mctx = mini.getContext('2d');
 const $ = id => document.getElementById(id);
 
 // =========================================================
-// Helpers
+// Geometry helpers
 // =========================================================
-const idx = (x, y) => y * GRID + x;
-const inGrid = (x, y) => x >= 0 && y >= 0 && x < GRID && y < GRID;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-// deterministic per-tile randomness for building variety
-function hash01(x, y, salt) {
-  let h = x * 374761393 + y * 668265263 + (salt || 0) * 2246822519;
+function pointSegDist(p, a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2 : 0;
+  t = clamp(t, 0, 1);
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
+function polylineLength(pts) {
+  let L = 0;
+  for (let i = 1; i < pts.length; i++) L += dist(pts[i - 1], pts[i]);
+  return L;
+}
+
+function polylineDist(p, pts) {
+  let d = Infinity;
+  for (let i = 1; i < pts.length; i++) d = Math.min(d, pointSegDist(p, pts[i - 1], pts[i]));
+  return d;
+}
+
+function pointInPoly(p, pts) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const a = pts[i], b = pts[j];
+    if ((a.y > p.y) !== (b.y > p.y) &&
+        p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  return inside;
+}
+
+function polyArea(pts) {
+  let s = 0;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++)
+    s += (pts[j].x + pts[i].x) * (pts[j].y - pts[i].y);
+  return Math.abs(s / 2);
+}
+
+// Ramer–Douglas–Peucker simplification
+function rdp(pts, eps) {
+  if (pts.length < 3) return pts.slice();
+  let maxD = 0, maxI = 0;
+  const a = pts[0], b = pts[pts.length - 1];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const d = pointSegDist(pts[i], a, b);
+    if (d > maxD) { maxD = d; maxI = i; }
+  }
+  if (maxD <= eps) return [a, b];
+  const left = rdp(pts.slice(0, maxI + 1), eps);
+  const right = rdp(pts.slice(maxI), eps);
+  return left.slice(0, -1).concat(right);
+}
+
+// one round of Chaikin corner-cutting (closed polygon) — softens districts
+function chaikinClosed(pts) {
+  const out = [];
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    out.push({ x: a.x * 0.75 + b.x * 0.25, y: a.y * 0.75 + b.y * 0.25 });
+    out.push({ x: a.x * 0.25 + b.x * 0.75, y: a.y * 0.25 + b.y * 0.75 });
+  }
+  return out;
+}
+
+function bboxOf(pts) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) {
+    if (p.x < x0) x0 = p.x; if (p.x > x1) x1 = p.x;
+    if (p.y < y0) y0 = p.y; if (p.y > y1) y1 = p.y;
+  }
+  return { x0, y0, x1, y1 };
+}
+
+function bboxHit(b, view, pad) {
+  return b.x1 + pad >= view.x0 && b.x0 - pad <= view.x1 &&
+         b.y1 + pad >= view.y0 && b.y0 - pad <= view.y1;
+}
+
+function hash01(seed) {
+  let h = (seed * 2654435761) >>> 0;
   h = (h ^ (h >>> 13)) >>> 0;
   h = (h * 1274126177) >>> 0;
   return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
 }
 
+// =========================================================
+// Coordinate transforms
+// =========================================================
 function screenToWorld(sx, sy) {
   return { x: cam.x + (sx - canvas.clientWidth / 2) / cam.z,
            y: cam.y + (sy - canvas.clientHeight / 2) / cam.z };
 }
-function worldToScreen(wx, wy) {
-  return { x: (wx - cam.x) * cam.z + canvas.clientWidth / 2,
-           y: (wy - cam.y) * cam.z + canvas.clientHeight / 2 };
-}
-function tileAt(sx, sy) {
-  const w = screenToWorld(sx, sy);
-  const tx = Math.floor(w.x / TILE), ty = Math.floor(w.y / TILE);
-  return inGrid(tx, ty) ? { x: tx, y: ty } : null;
-}
 
-function isRoadLike(t) { return t === T.ROAD || t === T.HIGHWAY; }
+function viewBounds() {
+  const tl = screenToWorld(0, 0), br = screenToWorld(canvas.clientWidth, canvas.clientHeight);
+  return { x0: tl.x, y0: tl.y, x1: br.x, y1: br.y };
+}
 
 // =========================================================
-// Editing
+// Editing model + undo
 // =========================================================
-function brushCells(cx, cy) {
-  const r = Math.floor(brush / 2), cells = [];
-  for (let y = cy - r; y <= cy + r; y++)
-    for (let x = cx - r; x <= cx + r; x++)
-      if (inGrid(x, y)) cells.push(idx(x, y));
-  return cells;
+function listOf(kind) {
+  return kind === 'road' ? city.roads : kind === 'area' ? city.areas : city.labels;
 }
 
-// L-shaped path (dominant axis first) — feels natural for streets
-function lPath(x0, y0, x1, y1) {
-  const cells = [];
-  const horizFirst = Math.abs(x1 - x0) >= Math.abs(y1 - y0);
-  const push = (x, y) => { if (inGrid(x, y)) cells.push(idx(x, y)); };
-  if (horizFirst) {
-    for (let x = x0; x !== x1; x += Math.sign(x1 - x0)) push(x, y0);
-    for (let y = y0; y !== y1; y += Math.sign(y1 - y0)) push(x1, y);
-  } else {
-    for (let y = y0; y !== y1; y += Math.sign(y1 - y0)) push(x0, y);
-    for (let x = x0; x !== x1; x += Math.sign(x1 - x0)) push(x, y1);
-  }
-  push(x1, y1);
-  return cells;
+function applyOp(op, reverse) {
+  const single = o => {
+    const list = listOf(o.kind);
+    const adding = reverse ? o.op === 'del' : o.op === 'add';
+    if (o.op === 'move') {
+      const sign = reverse ? -1 : 1;
+      translateElem(o.kind, o.elem, o.dx * sign, o.dy * sign);
+    } else if (adding) {
+      list.push(o.elem);
+    } else {
+      const i = list.indexOf(o.elem);
+      if (i >= 0) list.splice(i, 1);
+    }
+  };
+  if (op.op === 'batch') op.ops.forEach(single); else single(op);
+  if (selected && !listOf(selected.kind).includes(selected.elem)) selected = null;
+  afterEdit();
 }
 
-function beginStroke() { strokeChanges = new Map(); }
-
-function strokeSet(i, type) {
-  if (grid[i] === type) return;
-  if (!strokeChanges.has(i)) strokeChanges.set(i, grid[i]);
-  grid[i] = type;
-}
-
-function endStroke() {
-  if (strokeChanges && strokeChanges.size) {
-    undoStack.push(strokeChanges);
-    if (undoStack.length > UNDO_LIMIT) undoStack.shift();
-    redoStack.length = 0;
-    afterEdit();
-  }
-  strokeChanges = null;
-}
-
-function afterEdit() {
-  minimapDirty = true;
-  unsaved = true;
-  updateStats();
+function pushOp(op) {
+  undoStack.push(op);
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+  redoStack.length = 0;
   updateUndoButtons();
 }
 
-function undo() {
-  const changes = undoStack.pop();
-  if (!changes) return;
-  const inverse = new Map();
-  for (const [i, oldVal] of changes) { inverse.set(i, grid[i]); grid[i] = oldVal; }
-  redoStack.push(inverse);
-  afterEdit();
-}
+function commit(op) { applyOp(op, false); pushOp(op); }
 
-function redo() {
-  const changes = redoStack.pop();
-  if (!changes) return;
-  const inverse = new Map();
-  for (const [i, oldVal] of changes) { inverse.set(i, grid[i]); grid[i] = oldVal; }
-  undoStack.push(inverse);
-  afterEdit();
-}
+function undo() { const op = undoStack.pop(); if (op) { applyOp(op, true); redoStack.push(op); updateUndoButtons(); } }
+function redo() { const op = redoStack.pop(); if (op) { applyOp(op, false); undoStack.push(op); updateUndoButtons(); } }
 
 function updateUndoButtons() {
   $('btnUndo').disabled = undoStack.length === 0;
   $('btnRedo').disabled = redoStack.length === 0;
 }
 
+function afterEdit() {
+  dirty = true;
+  miniDirty = true;
+  unsaved = true;
+  updateStats();
+}
+
+function translateElem(kind, elem, dx, dy) {
+  for (const p of elem.pts) { p.x += dx; p.y += dy; }
+  if (elem.buildings) for (const b of elem.buildings) { b.x += dx; b.y += dy; }
+  if (elem.trees) for (const t of elem.trees) { t.x += dx; t.y += dy; }
+  elem.bbox = bboxOf(elem.pts);
+}
+
 // =========================================================
-// Stats
+// Element creation
 // =========================================================
-function updateStats() {
-  const counts = new Array(8).fill(0);
-  for (let i = 0; i < grid.length; i++) counts[grid[i]]++;
-  const pop  = counts[T.RES] * 14;
-  const jobs = counts[T.COM] * 11 + counts[T.IND] * 8;
-  const km   = (counts[T.ROAD] + counts[T.HIGHWAY]) * 0.02;
-  $('statPop').textContent   = pop.toLocaleString();
-  $('statJobs').textContent  = jobs.toLocaleString();
-  $('statRoads').textContent = km.toFixed(1);
-  $('statParks').textContent = counts[T.PARK].toLocaleString();
+function finishRoad(type, pts) {
+  if (pts.length < 2) return;
+  const simplified = rdp(pts, 4 / Math.max(cam.z, 0.05));
+  if (polylineLength(simplified) < 15) return;
+  const road = { id: nextId++, type, pts: simplified, bbox: bboxOf(simplified) };
+  commit({ op: 'add', kind: 'road', elem: road });
+}
+
+function finishArea(type, pts) {
+  if (pts.length < 3) return;
+  let poly = rdp(pts, 6 / Math.max(cam.z, 0.05));
+  if (poly.length < 3 || polyArea(poly) < 600) return;
+  poly = chaikinClosed(poly);
+  const area = { id: nextId++, type, pts: poly, bbox: bboxOf(poly) };
+  generateContents(area);
+  commit({ op: 'add', kind: 'area', elem: area });
+}
+
+function addLabel(p) {
+  const text = prompt('Label text:', '');
+  if (!text || !text.trim()) return;
+  const label = { id: nextId++, text: text.trim().slice(0, 40),
+                  pts: [{ x: p.x, y: p.y }], size: 64 };
+  label.bbox = bboxOf(label.pts);
+  commit({ op: 'add', kind: 'label', elem: label });
+}
+
+// Fill a district with procedurally placed buildings / trees.
+// Buildings keep clear of roads and align to the nearest one.
+function generateContents(area) {
+  if (area.type === 'park') {
+    area.trees = [];
+    const b = area.bbox, sp = 23;
+    for (let y = b.y0; y <= b.y1; y += sp) {
+      for (let x = b.x0; x <= b.x1; x += sp) {
+        const s = area.id * 7919 + Math.round(x) * 31 + Math.round(y) * 131;
+        if (hash01(s) < 0.45) continue;
+        const px = Math.round(x + (hash01(s + 1) - 0.5) * sp);
+        const py = Math.round(y + (hash01(s + 2) - 0.5) * sp);
+        if (!pointInPoly({ x: px, y: py }, area.pts)) continue;
+        area.trees.push({ x: px, y: py,
+                          r: Math.round((3.5 + hash01(s + 3) * 4.5) * 10) / 10,
+                          v: Math.round(hash01(s + 4) * 100) / 100 });
+      }
+    }
+    return;
+  }
+  const cfg = GEN_CFG[area.type];
+  if (!cfg) return;
+  area.buildings = [];
+  const b = area.bbox;
+  for (let y = b.y0; y <= b.y1; y += cfg.spacing) {
+    for (let x = b.x0; x <= b.x1; x += cfg.spacing) {
+      const s = area.id * 7919 + Math.round(x) * 31 + Math.round(y) * 131;
+      const px = x + (hash01(s) - 0.5) * cfg.spacing * 0.6;
+      const py = y + (hash01(s + 1) - 0.5) * cfg.spacing * 0.6;
+      const c = { x: px, y: py };
+      if (!pointInPoly(c, area.pts)) continue;
+      const w = cfg.min + hash01(s + 2) * (cfg.max - cfg.min);
+      const h = cfg.min + hash01(s + 3) * (cfg.max - cfg.min);
+
+      // keep clear of roads, align to the nearest one
+      let rot = hash01(s + 4) * Math.PI, near = Infinity, blocked = false;
+      for (const r of city.roads) {
+        const halfW = ROAD_STYLES[r.type].w / 2;
+        if (!bboxHit(r.bbox, { x0: c.x, y0: c.y, x1: c.x, y1: c.y }, halfW + cfg.max)) continue;
+        for (let i = 1; i < r.pts.length; i++) {
+          const d = pointSegDist(c, r.pts[i - 1], r.pts[i]);
+          if (d < halfW + Math.max(w, h) * 0.65) { blocked = true; break; }
+          if (d < near) {
+            near = d;
+            const a = r.pts[i - 1], e = r.pts[i];
+            rot = Math.atan2(e.y - a.y, e.x - a.x);
+          }
+        }
+        if (blocked) break;
+      }
+      if (blocked) continue;
+      area.buildings.push({
+        x: Math.round(px), y: Math.round(py),
+        w: Math.round(w * 10) / 10, h: Math.round(h * 10) / 10,
+        rot: Math.round(rot * 100) / 100,
+        c: cfg.palette[Math.floor(hash01(s + 5) * cfg.palette.length)],
+        v: Math.round(hash01(s + 6) * 100) / 100
+      });
+    }
+  }
+}
+
+// =========================================================
+// Hit testing
+// =========================================================
+function hitTest(p) {
+  for (const l of city.labels) {
+    if (Math.abs(p.x - l.pts[0].x) < l.size * l.text.length * 0.3 &&
+        Math.abs(p.y - l.pts[0].y) < l.size) return { kind: 'label', elem: l };
+  }
+  for (let zi = ROAD_ORDER.length - 1; zi >= 0; zi--) {
+    for (let i = city.roads.length - 1; i >= 0; i--) {
+      const r = city.roads[i];
+      if (r.type !== ROAD_ORDER[zi]) continue;
+      const tol = ROAD_STYLES[r.type].w / 2 + 6 / cam.z;
+      if (!bboxHit(r.bbox, { x0: p.x, y0: p.y, x1: p.x, y1: p.y }, tol)) continue;
+      if (polylineDist(p, r.pts) <= tol) return { kind: 'road', elem: r };
+    }
+  }
+  for (let i = city.areas.length - 1; i >= 0; i--) {
+    const a = city.areas[i];
+    if (bboxHit(a.bbox, { x0: p.x, y0: p.y, x1: p.x, y1: p.y }, 0) &&
+        pointInPoly(p, a.pts)) return { kind: 'area', elem: a };
+  }
+  return null;
+}
+
+// snap to road endpoints first, then anywhere along a road
+function snapToRoads(p, exclude) {
+  const maxD = 18 / cam.z;
+  let best = null, bestD = maxD;
+  for (const r of city.roads) {
+    if (r === exclude) continue;
+    for (const e of [r.pts[0], r.pts[r.pts.length - 1]]) {
+      const d = dist(p, e);
+      if (d < bestD) { bestD = d; best = { x: e.x, y: e.y }; }
+    }
+  }
+  if (best) return best;
+  bestD = maxD;
+  for (const r of city.roads) {
+    if (r === exclude) continue;
+    if (!bboxHit(r.bbox, { x0: p.x, y0: p.y, x1: p.x, y1: p.y }, maxD)) continue;
+    for (let i = 1; i < r.pts.length; i++) {
+      const a = r.pts[i - 1], b = r.pts[i];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len2 = dx * dx + dy * dy;
+      let t = len2 ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2 : 0;
+      t = clamp(t, 0, 1);
+      const q = { x: a.x + t * dx, y: a.y + t * dy };
+      const d = dist(p, q);
+      if (d < bestD) { bestD = d; best = q; }
+    }
+  }
+  return best;
 }
 
 // =========================================================
 // Rendering
 // =========================================================
-const COLORS = {
-  grass:      '#7fae62',
-  grassDark:  '#76a55b',
-  road:       '#41454d',
-  roadEdge:   '#5c616b',
-  hwy:        '#23262d',
-  hwyStripe:  '#e8b923',
-  water:      '#3a79c9',
-  waterDeep:  '#306bb4',
-  parkBase:   '#5d9c4c',
-  resBase:    '#88b573',
-  comBase:    '#7e94ad',
-  indBase:    '#a9a08a'
-};
-
-const RES_PALETTE = ['#d8b46a', '#c98c5a', '#b9655a', '#9a7e64', '#ddc488', '#a8775f'];
-const COM_PALETTE = ['#5d83ad', '#48688c', '#6e9cc4', '#3f5d7e'];
-const ROOF_PALETTE = ['#8c4f3f', '#74543e', '#6e4a4a', '#5e514a'];
-
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
   canvas.width = canvas.clientWidth * dpr;
   canvas.height = canvas.clientHeight * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  dirty = true;
 }
 
-function neighborsRoad(x, y) {
-  // n, e, s, w connectivity for road-like tiles (roads & highways connect)
-  return {
-    n: y > 0        && isRoadLike(grid[idx(x, y - 1)]),
-    e: x < GRID - 1 && isRoadLike(grid[idx(x + 1, y)]),
-    s: y < GRID - 1 && isRoadLike(grid[idx(x, y + 1)]),
-    w: x > 0        && isRoadLike(grid[idx(x - 1, y)])
-  };
+function tracePath(g, pts, closed) {
+  g.beginPath();
+  if (pts.length < 3) {
+    g.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) g.lineTo(pts[i].x, pts[i].y);
+  } else {
+    g.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const mx = (pts[i].x + pts[i + 1].x) / 2, my = (pts[i].y + pts[i + 1].y) / 2;
+      g.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+    }
+    g.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+  }
+  if (closed) g.closePath();
 }
 
-function sameType(x, y, t) { return inGrid(x, y) && grid[idx(x, y)] === t; }
+// draws everything in world coordinates; `view` culls, `detail` scales LOD
+function renderScene(g, view, z) {
+  const detail = z > 0.35, fine = z > 0.9;
 
-function render(time) {
+  // areas, in layer order
+  for (const type of AREA_ORDER) {
+    for (const a of city.areas) {
+      if (a.type !== type || !bboxHit(a.bbox, view, 50)) continue;
+      const st = AREA_STYLES[a.type];
+      tracePath(g, a.pts, true);
+      g.fillStyle = st.fill;
+      g.fill();
+      g.strokeStyle = st.edge;
+      g.lineWidth = a.type === 'water' ? 5 : 3;
+      g.lineJoin = 'round';
+      g.stroke();
+    }
+  }
+
+  // district contents
+  if (detail) {
+    for (const a of city.areas) {
+      if (!bboxHit(a.bbox, view, 50)) continue;
+      if (a.trees) {
+        for (const t of a.trees) {
+          if (t.x < view.x0 - 20 || t.x > view.x1 + 20 || t.y < view.y0 - 20 || t.y > view.y1 + 20) continue;
+          if (!fine) {     // medium zoom: one flat circle, cheap
+            g.fillStyle = t.v > 0.5 ? '#2f7a40' : '#357f37';
+            g.beginPath(); g.arc(t.x, t.y, t.r, 0, 6.283); g.fill();
+            continue;
+          }
+          g.fillStyle = 'rgba(0,0,0,0.18)';
+          g.beginPath(); g.arc(t.x + t.r * 0.3, t.y + t.r * 0.3, t.r, 0, 6.283); g.fill();
+          g.fillStyle = t.v > 0.5 ? '#2f7a40' : '#357f37';
+          g.beginPath(); g.arc(t.x, t.y, t.r, 0, 6.283); g.fill();
+          g.fillStyle = 'rgba(255,255,255,0.12)';
+          g.beginPath(); g.arc(t.x - t.r * 0.3, t.y - t.r * 0.3, t.r * 0.45, 0, 6.283); g.fill();
+        }
+      }
+      if (a.buildings) {
+        for (const b of a.buildings) {
+          if (b.x < view.x0 - 40 || b.x > view.x1 + 40 || b.y < view.y0 - 40 || b.y > view.y1 + 40) continue;
+          if (!fine) {     // medium zoom: flat unrotated rect, cheap
+            g.fillStyle = b.c;
+            g.fillRect(b.x - b.w / 2, b.y - b.h / 2, b.w, b.h);
+            continue;
+          }
+          g.save();
+          g.translate(b.x, b.y);
+          g.rotate(b.rot);
+          const sh = a.type === 'com' ? 3.5 : 2;
+          g.fillStyle = 'rgba(0,0,0,0.25)';
+          g.fillRect(-b.w / 2 + sh, -b.h / 2 + sh, b.w, b.h);
+          g.fillStyle = b.c;
+          g.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+          {
+            if (a.type === 'res') {
+              g.fillStyle = ROOF_PALETTE[Math.floor(b.v * ROOF_PALETTE.length)];
+              g.fillRect(-b.w / 2, -b.h / 2, b.w, b.h * 0.45);
+            } else if (a.type === 'com') {
+              g.fillStyle = 'rgba(255,255,255,0.18)';
+              g.fillRect(-b.w / 2, -b.h / 2, b.w, b.h * 0.22);
+              g.fillStyle = 'rgba(220,235,255,0.5)';
+              const n = Math.max(2, Math.floor(b.w / 5));
+              for (let k = 0; k < n; k++)
+                if (hash01(b.x * 13 + b.y * 7 + k) > 0.3)
+                  g.fillRect(-b.w / 2 + (k + 0.25) * (b.w / n), -b.h * 0.1, (b.w / n) * 0.5, b.h * 0.5);
+            } else {
+              g.strokeStyle = 'rgba(0,0,0,0.18)';
+              g.lineWidth = 0.8;
+              g.beginPath();
+              for (let k = 1; k < 4; k++) {
+                g.moveTo(-b.w / 2, -b.h / 2 + (b.h * k) / 4);
+                g.lineTo(b.w / 2, -b.h / 2 + (b.h * k) / 4);
+              }
+              g.stroke();
+              g.fillStyle = b.v > 0.5 ? '#c9c2b2' : '#6e6a61';
+              g.beginPath(); g.arc(b.w * 0.22, -b.h * 0.18, Math.min(b.w, b.h) * 0.16, 0, 6.283); g.fill();
+            }
+          }
+          g.restore();
+        }
+      }
+    }
+  }
+
+  // roads: per class — casings first, then surfaces, so same-class
+  // roads merge into seamless junctions
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  for (const type of ROAD_ORDER) {
+    const st = ROAD_STYLES[type];
+    const vis = city.roads.filter(r => r.type === type && bboxHit(r.bbox, view, st.w + 20));
+    if (!vis.length) continue;
+    if (st.casing) {
+      g.strokeStyle = st.casingColor;
+      g.lineWidth = st.w + st.casing * 2;
+      for (const r of vis) { tracePath(g, r.pts); g.stroke(); }
+    }
+    g.strokeStyle = st.color;
+    g.lineWidth = st.w;
+    if (st.dash) g.setLineDash(st.dash);
+    for (const r of vis) { tracePath(g, r.pts); g.stroke(); }
+    g.setLineDash([]);
+    if (st.lane && detail) {
+      g.strokeStyle = st.lane.color;
+      g.lineWidth = st.lane.w;
+      if (st.lane.dash) g.setLineDash(st.lane.dash);
+      for (const r of vis) { tracePath(g, r.pts); g.stroke(); }
+      g.setLineDash([]);
+    }
+  }
+
+  // labels
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  for (const l of city.labels) {
+    if (!bboxHit(l.bbox, view, 600)) continue;
+    // keep labels readable: world-sized, but clamped in screen pixels
+    const sz = clamp(l.size * z, 11, 44) / z;
+    g.font = `600 ${sz}px system-ui, sans-serif`;
+    g.lineWidth = sz * 0.18;
+    g.strokeStyle = 'rgba(255,255,255,0.75)';
+    g.strokeText(l.text, l.pts[0].x, l.pts[0].y);
+    g.fillStyle = '#2a2f38';
+    g.fillText(l.text, l.pts[0].x, l.pts[0].y);
+  }
+}
+
+function render() {
+  requestAnimationFrame(render);
+  if (!dirty) return;
+  dirty = false;
+
+  const dpr = window.devicePixelRatio || 1;
   const w = canvas.clientWidth, h = canvas.clientHeight;
-  const z = cam.z, ts = TILE * z;
-
-  // background (out-of-map void)
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = '#0d0f13';
   ctx.fillRect(0, 0, w, h);
 
-  // visible tile range
-  const tl = screenToWorld(0, 0), br = screenToWorld(w, h);
-  const x0 = clamp(Math.floor(tl.x / TILE), 0, GRID - 1);
-  const y0 = clamp(Math.floor(tl.y / TILE), 0, GRID - 1);
-  const x1 = clamp(Math.floor(br.x / TILE), 0, GRID - 1);
-  const y1 = clamp(Math.floor(br.y / TILE), 0, GRID - 1);
+  // world transform
+  ctx.setTransform(dpr * cam.z, 0, 0, dpr * cam.z,
+                   dpr * (w / 2 - cam.x * cam.z), dpr * (h / 2 - cam.y * cam.z));
 
-  // grass base for whole map area
-  const o = worldToScreen(0, 0);
-  ctx.fillStyle = COLORS.grass;
-  ctx.fillRect(o.x, o.y, WORLD * z, WORLD * z);
+  // land
+  ctx.fillStyle = '#7fae62';
+  ctx.fillRect(MAP.x, MAP.y, MAP.w, MAP.h);
 
-  const detail = ts >= 14;        // draw buildings/trees only when zoomed enough
-  const fine = ts >= 30;          // windows, dashes, texture
+  const view = viewBounds();
 
-  for (let ty = y0; ty <= y1; ty++) {
-    for (let tx = x0; tx <= x1; tx++) {
-      const t = previewTiles && previewTiles.has(idx(tx, ty))
-              ? previewTiles.get(idx(tx, ty))
-              : grid[idx(tx, ty)];
-      if (t === T.EMPTY) {
-        // subtle grass checker when zoomed in
-        if (fine && (tx + ty) % 2 === 0) {
-          const p = worldToScreen(tx * TILE, ty * TILE);
-          ctx.fillStyle = COLORS.grassDark;
-          ctx.fillRect(p.x, p.y, ts, ts);
-        }
-        continue;
-      }
-      drawTile(tx, ty, t, ts, detail, fine, time);
-    }
+  // reference dots
+  if (showDots && cam.z > 0.12) {
+    const sp = cam.z > 0.7 ? 100 : 400;
+    ctx.fillStyle = 'rgba(0,0,0,0.10)';
+    const r = 1.6 / cam.z;
+    for (let y = Math.max(0, Math.floor(view.y0 / sp) * sp); y <= Math.min(MAP.h, view.y1); y += sp)
+      for (let x = Math.max(0, Math.floor(view.x0 / sp) * sp); x <= Math.min(MAP.w, view.x1); x += sp)
+        ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
 
-  // preview overlay tint
-  if (previewTiles) {
-    ctx.fillStyle = 'rgba(255,255,255,0.18)';
-    for (const i of previewTiles.keys()) {
-      const tx = i % GRID, ty = Math.floor(i / GRID);
-      const p = worldToScreen(tx * TILE, ty * TILE);
-      ctx.fillRect(p.x, p.y, ts, ts);
-    }
-  }
+  renderScene(ctx, view, cam.z);
 
-  // grid lines
-  if (showGrid && ts >= 9) {
-    ctx.strokeStyle = 'rgba(0,0,0,0.10)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let tx = x0; tx <= x1 + 1; tx++) {
-      const p = worldToScreen(tx * TILE, 0);
-      ctx.moveTo(p.x, Math.max(p.y, 0));
-      ctx.lineTo(p.x, Math.min(worldToScreen(0, WORLD).y, h));
-    }
-    for (let ty = y0; ty <= y1 + 1; ty++) {
-      const p = worldToScreen(0, ty * TILE);
-      ctx.moveTo(Math.max(p.x, 0), p.y);
-      ctx.lineTo(Math.min(worldToScreen(WORLD, 0).x, w), p.y);
-    }
-    ctx.stroke();
-  }
-
-  // map border
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(o.x, o.y, WORLD * z, WORLD * z);
-
-  // hover highlight (brush footprint)
-  if (hoverTile && tool !== 'pan' && !panState) {
-    const r = LINE_TOOLS.has(tool) ? 0 : Math.floor(brush / 2);
-    const p = worldToScreen((hoverTile.x - r) * TILE, (hoverTile.y - r) * TILE);
-    const size = (r * 2 + 1) * ts;
-    ctx.strokeStyle = tool === 'erase' ? 'rgba(255,93,93,0.9)' : 'rgba(255,255,255,0.85)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(p.x, p.y, size, size);
-  }
-
-  renderMinimap();
-  requestAnimationFrame(render);
-}
-
-function drawTile(tx, ty, t, ts, detail, fine, time) {
-  const p = worldToScreen(tx * TILE, ty * TILE);
-  const x = p.x, y = p.y;
-
-  switch (t) {
-    case T.ROAD:
-    case T.HIGHWAY: {
-      drawRoad(tx, ty, t, x, y, ts, fine);
-      break;
-    }
-    case T.WATER: {
-      ctx.fillStyle = COLORS.water;
-      ctx.fillRect(x, y, ts, ts);
-      if (fine) {
-        // gentle animated shimmer
-        const ph = (time / 900 + hash01(tx, ty, 7) * 6.28);
-        ctx.fillStyle = 'rgba(255,255,255,0.10)';
-        const wy = y + ts * (0.3 + 0.15 * Math.sin(ph));
-        ctx.fillRect(x + ts * 0.15, wy, ts * 0.45, Math.max(1, ts * 0.05));
-        const wy2 = y + ts * (0.7 + 0.12 * Math.sin(ph + 2));
-        ctx.fillRect(x + ts * 0.45, wy2, ts * 0.35, Math.max(1, ts * 0.05));
-      } else if (detail && hash01(tx, ty, 7) > 0.6) {
-        ctx.fillStyle = COLORS.waterDeep;
-        ctx.fillRect(x, y, ts, ts);
-      }
-      break;
-    }
-    case T.PARK: {
-      ctx.fillStyle = COLORS.parkBase;
-      ctx.fillRect(x, y, ts, ts);
-      if (detail) {
-        const n = 2 + Math.floor(hash01(tx, ty, 3) * 2);
-        for (let k = 0; k < n; k++) {
-          const ox = (0.2 + 0.6 * hash01(tx, ty, 10 + k)) * ts;
-          const oy = (0.2 + 0.6 * hash01(tx, ty, 20 + k)) * ts;
-          const r = ts * (0.10 + 0.08 * hash01(tx, ty, 30 + k));
-          ctx.fillStyle = 'rgba(0,0,0,0.15)';
-          ctx.beginPath(); ctx.arc(x + ox + r * 0.25, y + oy + r * 0.25, r, 0, 6.283); ctx.fill();
-          ctx.fillStyle = k % 2 ? '#2f7a40' : '#357f37';
-          ctx.beginPath(); ctx.arc(x + ox, y + oy, r, 0, 6.283); ctx.fill();
-        }
-      }
-      break;
-    }
-    case T.RES: drawBuilding(tx, ty, x, y, ts, detail, fine, 'res'); break;
-    case T.COM: drawBuilding(tx, ty, x, y, ts, detail, fine, 'com'); break;
-    case T.IND: drawBuilding(tx, ty, x, y, ts, detail, fine, 'ind'); break;
-  }
-}
-
-function drawRoad(tx, ty, t, x, y, ts, fine) {
-  const hwy = t === T.HIGHWAY;
-  const c = neighborsRoad(tx, ty);
-  const cx = x + ts / 2, cy = y + ts / 2;
-
-  ctx.fillStyle = hwy ? COLORS.hwy : COLORS.road;
-  ctx.fillRect(x, y, ts, ts);
-
-  if (!fine) return;
-
-  // sidewalk / shoulder edges on sides without a connection
-  ctx.fillStyle = hwy ? '#3a3f49' : COLORS.roadEdge;
-  const e = Math.max(1, ts * 0.08);
-  if (!c.n) ctx.fillRect(x, y, ts, e);
-  if (!c.s) ctx.fillRect(x, y + ts - e, ts, e);
-  if (!c.w) ctx.fillRect(x, y, e, ts);
-  if (!c.e) ctx.fillRect(x + ts - e, y, e, ts);
-
-  // centre markings out to each connected edge
-  const dirs = [];
-  if (c.n) dirs.push([0, -1]);
-  if (c.s) dirs.push([0, 1]);
-  if (c.w) dirs.push([-1, 0]);
-  if (c.e) dirs.push([1, 0]);
-  if (!dirs.length) return;       // isolated stub: plain asphalt
-
-  const isXing = dirs.length > 2; // intersections: no markings through middle
-  ctx.lineCap = 'butt';
-  for (const [dx, dy] of dirs) {
-    const ex = cx + dx * ts / 2, ey = cy + dy * ts / 2;
-    if (hwy) {
-      ctx.strokeStyle = COLORS.hwyStripe;
-      ctx.lineWidth = Math.max(1, ts * 0.045);
-      const off = ts * 0.07;
-      ctx.beginPath();
-      // double yellow line
-      ctx.moveTo(cx + dy * off, cy + dx * off); ctx.lineTo(ex + dy * off, ey + dx * off);
-      ctx.moveTo(cx - dy * off, cy - dx * off); ctx.lineTo(ex - dy * off, ey - dx * off);
+  // in-progress stroke preview
+  if (stroke && stroke.length > 1) {
+    const pts = strokeShift && ROAD_STYLES[tool] ? [stroke[0], stroke[stroke.length - 1]] : stroke;
+    if (ROAD_STYLES[tool]) {
+      const st = ROAD_STYLES[tool];
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = st.w;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      tracePath(ctx, pts);
       ctx.stroke();
-    } else if (!isXing) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.75)';
-      ctx.lineWidth = Math.max(1, ts * 0.05);
-      ctx.setLineDash([ts * 0.18, ts * 0.16]);
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ex, ey); ctx.stroke();
+    } else if (AREA_STYLES[tool]) {
+      tracePath(ctx, pts, true);
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.lineWidth = 2 / cam.z;
+      ctx.setLineDash([8 / cam.z, 6 / cam.z]);
+      ctx.stroke();
       ctx.setLineDash([]);
     }
   }
-}
 
-function drawBuilding(tx, ty, x, y, ts, detail, fine, kind) {
-  const base = kind === 'res' ? COLORS.resBase : kind === 'com' ? COLORS.comBase : COLORS.indBase;
-  ctx.fillStyle = base;
-  ctx.fillRect(x, y, ts, ts);
-  if (!detail) return;
+  // snap indicator
+  if (snapPt) {
+    ctx.strokeStyle = '#8fc1ff';
+    ctx.lineWidth = 2 / cam.z;
+    ctx.beginPath();
+    ctx.arc(snapPt.x, snapPt.y, 9 / cam.z, 0, 6.283);
+    ctx.stroke();
+  }
 
-  const h1 = hash01(tx, ty, 1), h2 = hash01(tx, ty, 2), h3 = hash01(tx, ty, 4);
-  const inset = ts * (0.12 + 0.06 * h1);
-  const bx = x + inset, by = y + inset;
-  const bw = ts - inset * 2, bh = ts - inset * 2;
-
-  // drop shadow for a hint of height
-  ctx.fillStyle = 'rgba(0,0,0,0.22)';
-  const sh = ts * (kind === 'com' ? 0.12 : 0.07);
-  ctx.fillRect(bx + sh, by + sh, bw, bh);
-
-  if (kind === 'res') {
-    ctx.fillStyle = RES_PALETTE[Math.floor(h2 * RES_PALETTE.length)];
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = ROOF_PALETTE[Math.floor(h3 * ROOF_PALETTE.length)];
-    ctx.fillRect(bx, by, bw, bh * 0.45);
-    if (fine) {  // little garden strip
-      ctx.fillStyle = '#69a558';
-      ctx.fillRect(x + ts * 0.05, y + ts * 0.8, ts * 0.9, ts * 0.14);
-    }
-  } else if (kind === 'com') {
-    ctx.fillStyle = COM_PALETTE[Math.floor(h2 * COM_PALETTE.length)];
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = 'rgba(255,255,255,0.16)';
-    ctx.fillRect(bx, by, bw, bh * 0.18);  // rooftop highlight
-    if (fine) {
-      // window grid
-      ctx.fillStyle = 'rgba(220,235,255,0.55)';
-      const cols = 3, rows = 3;
-      const gw = bw / (cols * 2), gh = bh / (rows * 2);
-      for (let r = 0; r < rows; r++)
-        for (let cc = 0; cc < cols; cc++)
-          if (hash01(tx, ty, 50 + r * 3 + cc) > 0.25)
-            ctx.fillRect(bx + gw * (cc * 2 + 0.5), by + gh * (r * 2 + 0.7), gw, gh);
-    }
-  } else { // industrial
-    ctx.fillStyle = h2 > 0.5 ? '#9b9484' : '#8d867a';
-    ctx.fillRect(bx, by, bw, bh);
-    if (fine) {
-      // corrugated roof stripes + a tank or chimney
-      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let k = 1; k < 4; k++) {
-        ctx.moveTo(bx, by + (bh * k) / 4);
-        ctx.lineTo(bx + bw, by + (bh * k) / 4);
-      }
+  // selection highlight
+  if (selected) {
+    const e = selected.elem;
+    ctx.strokeStyle = 'rgba(77,163,255,0.85)';
+    if (selected.kind === 'road') {
+      ctx.lineWidth = ROAD_STYLES[e.type].w + 8 / cam.z;
+      ctx.globalAlpha = 0.35;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      tracePath(ctx, e.pts);
       ctx.stroke();
-      ctx.fillStyle = h3 > 0.5 ? '#c9c2b2' : '#6e6a61';
-      ctx.beginPath();
-      ctx.arc(bx + bw * 0.75, by + bh * 0.3, ts * 0.10, 0, 6.283);
-      ctx.fill();
+      ctx.globalAlpha = 1;
+      for (const p of [e.pts[0], e.pts[e.pts.length - 1]]) {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 6 / cam.z, 0, 6.283); ctx.fill();
+        ctx.lineWidth = 2 / cam.z;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 6 / cam.z, 0, 6.283); ctx.stroke();
+      }
+    } else if (selected.kind === 'area') {
+      ctx.lineWidth = 3 / cam.z;
+      ctx.setLineDash([10 / cam.z, 6 / cam.z]);
+      tracePath(ctx, e.pts, true);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      const b = e.bbox;
+      ctx.lineWidth = 2 / cam.z;
+      ctx.strokeRect(b.x0 - e.size * 2, b.y0 - e.size, e.size * 4, e.size * 2);
     }
   }
+
+  // map border
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 3 / cam.z;
+  ctx.strokeRect(MAP.x, MAP.y, MAP.w, MAP.h);
+
+  renderMinimap();
 }
 
 // ---------- Minimap ----------
-const MINI_COLORS = ['#7fae62', '#9aa0aa', '#e8b923', '#3a79c9', '#2f8f4e', '#62b35c', '#4d8fd1', '#c2a14d'];
 const miniBuf = document.createElement('canvas');
-miniBuf.width = GRID; miniBuf.height = GRID;
+miniBuf.width = 160; miniBuf.height = 160;
 const miniBufCtx = miniBuf.getContext('2d');
 
 function renderMinimap() {
-  if (minimapDirty) {
-    const img = miniBufCtx.createImageData(GRID, GRID);
-    const d = img.data;
-    for (let i = 0; i < grid.length; i++) {
-      const c = MINI_COLORS[grid[i]];
-      d[i * 4]     = parseInt(c.slice(1, 3), 16);
-      d[i * 4 + 1] = parseInt(c.slice(3, 5), 16);
-      d[i * 4 + 2] = parseInt(c.slice(5, 7), 16);
-      d[i * 4 + 3] = 255;
+  const s = mini.width / MAP.w;
+  if (miniDirty) {
+    miniDirty = false;
+    const g = miniBufCtx;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.fillStyle = '#7fae62';
+    g.fillRect(0, 0, mini.width, mini.height);
+    g.setTransform(s, 0, 0, s, 0, 0);
+    for (const type of AREA_ORDER) {
+      for (const a of city.areas) {
+        if (a.type !== type) continue;
+        tracePath(g, a.pts, true);
+        g.fillStyle = AREA_STYLES[a.type].fill;
+        g.fill();
+      }
     }
-    miniBufCtx.putImageData(img, 0, 0);
-    minimapDirty = false;
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    for (const type of ROAD_ORDER) {
+      const st = ROAD_STYLES[type];
+      g.strokeStyle = type === 'highway' ? '#e8b923' : type === 'path' ? '#b3a47e' : '#393d44';
+      g.lineWidth = Math.max(st.w, 30);
+      for (const r of city.roads) {
+        if (r.type !== type) continue;
+        tracePath(g, r.pts);
+        g.stroke();
+      }
+    }
   }
-  mctx.imageSmoothingEnabled = false;
+  mctx.setTransform(1, 0, 0, 1, 0, 0);
   mctx.clearRect(0, 0, mini.width, mini.height);
-  mctx.drawImage(miniBuf, 0, 0, mini.width, mini.height);
-
-  // viewport rectangle
-  const s = mini.width / WORLD;
-  const vw = canvas.clientWidth / cam.z * s;
-  const vh = canvas.clientHeight / cam.z * s;
+  mctx.drawImage(miniBuf, 0, 0);
+  const vw = canvas.clientWidth / cam.z * s, vh = canvas.clientHeight / cam.z * s;
   mctx.strokeStyle = '#ffffff';
   mctx.lineWidth = 1;
   mctx.strokeRect(cam.x * s - vw / 2, cam.y * s - vh / 2, vw, vh);
 }
 
 // =========================================================
-// Input — mouse
+// Stats
+// =========================================================
+function updateStats() {
+  let pop = 0, jobs = 0, roadLen = 0, parks = 0;
+  for (const a of city.areas) {
+    if (a.type === 'res') pop += (a.buildings ? a.buildings.length : 0) * 9;
+    else if (a.type === 'com') jobs += (a.buildings ? a.buildings.length : 0) * 16;
+    else if (a.type === 'ind') jobs += (a.buildings ? a.buildings.length : 0) * 12;
+    else if (a.type === 'park') parks++;
+  }
+  for (const r of city.roads) if (r.type !== 'path') roadLen += polylineLength(r.pts);
+  $('statPop').textContent = pop.toLocaleString();
+  $('statJobs').textContent = jobs.toLocaleString();
+  $('statRoads').textContent = (roadLen / 1000).toFixed(1);
+  $('statParks').textContent = parks;
+}
+
+// =========================================================
+// Input
 // =========================================================
 function setTool(name) {
   tool = name;
+  if (name !== 'select') selected = null;
   document.querySelectorAll('.tool').forEach(b =>
     b.classList.toggle('active', b.dataset.tool === name));
   canvas.classList.toggle('panning', name === 'pan');
+  dirty = true;
 }
 
-function startPan(e) {
-  panState = { sx: e.clientX, sy: e.clientY, camX: cam.x, camY: cam.y };
-  canvas.classList.add('dragging');
-}
-
-function applyTool(tile) {
-  for (const i of brushCells(tile.x, tile.y)) strokeSet(i, TOOL_TILE[tool]);
-}
-
-canvas.addEventListener('mousedown', e => {
-  const rect = canvas.getBoundingClientRect();
-  const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-
-  if (e.button === 1 || e.button === 2 || spaceHeld || tool === 'pan') {
-    startPan(e);
-    e.preventDefault();
+function pointerDown(sx, sy, opts) {
+  const p = screenToWorld(sx, sy);
+  if (opts.pan || spaceHeld || tool === 'pan') {
+    dragState = { mode: 'pan', sx, sy, camX: cam.x, camY: cam.y };
+    canvas.classList.add('dragging');
     return;
   }
-  if (e.button !== 0) return;
+  if (tool === 'select') {
+    if (selected && selected.kind === 'road') {
+      const e = selected.elem;
+      for (const which of [0, 1]) {
+        const ep = which ? e.pts[e.pts.length - 1] : e.pts[0];
+        if (dist(p, ep) < 12 / cam.z) {
+          dragState = { mode: 'endpoint', elem: e, which, before: { x: ep.x, y: ep.y } };
+          return;
+        }
+      }
+    }
+    const hit = hitTest(p);
+    selected = hit;
+    dirty = true;
+    if (hit) dragState = { mode: 'move', kind: hit.kind, elem: hit.elem, last: p, dx: 0, dy: 0 };
+    return;
+  }
+  if (tool === 'erase') {
+    dragState = { mode: 'erase', ops: [] };
+    eraseAt(p, dragState.ops);
+    return;
+  }
+  if (tool === 'label') { addLabel(p); return; }
 
-  const tile = tileAt(sx, sy);
-  if (!tile) return;
+  if (ROAD_STYLES[tool]) {
+    const snap = snapToRoads(p);
+    stroke = [snap || p];
+    snapPt = snap;
+  } else if (AREA_STYLES[tool]) {
+    stroke = [p];
+  }
+  dirty = true;
+}
 
-  if (LINE_TOOLS.has(tool)) {
-    lineStart = tile;
-    previewTiles = new Map([[idx(tile.x, tile.y), TOOL_TILE[tool]]]);
-  } else {
-    painting = true;
-    beginStroke();
-    applyTool(tile);
+function pointerMove(sx, sy) {
+  const p = screenToWorld(sx, sy);
+  hoverPt = p;
+  if (dragState) {
+    if (dragState.mode === 'pan') {
+      cam.x = dragState.camX - (sx - dragState.sx) / cam.z;
+      cam.y = dragState.camY - (sy - dragState.sy) / cam.z;
+      clampCamera();
+    } else if (dragState.mode === 'move') {
+      const dx = p.x - dragState.last.x, dy = p.y - dragState.last.y;
+      translateElem(dragState.kind, dragState.elem, dx, dy);
+      dragState.dx += dx; dragState.dy += dy;
+      dragState.last = p;
+      miniDirty = true;
+    } else if (dragState.mode === 'endpoint') {
+      const e = dragState.elem;
+      const snap = snapToRoads(p, e);
+      const target = snap || p;
+      snapPt = snap;
+      const i = dragState.which ? e.pts.length - 1 : 0;
+      e.pts[i].x = target.x; e.pts[i].y = target.y;
+      e.bbox = bboxOf(e.pts);
+      miniDirty = true;
+    } else if (dragState.mode === 'erase') {
+      eraseAt(p, dragState.ops);
+    }
+    dirty = true;
+    return;
+  }
+  if (stroke) {
+    if (ROAD_STYLES[tool]) {
+      snapPt = snapToRoads(p);  // shown as a hint; applied to the endpoint on release
+      if (dist(p, stroke[stroke.length - 1]) > 2 / cam.z) stroke.push(p);
+    } else if (dist(p, stroke[stroke.length - 1]) > 3 / cam.z) {
+      stroke.push(p);
+    }
+    dirty = true;
+  } else if (tool === 'select' || tool === 'erase') {
+    dirty = true; // keep hover affordances fresh
+  }
+}
+
+function pointerUp() {
+  if (dragState) {
+    if (dragState.mode === 'pan') {
+      canvas.classList.remove('dragging');
+    } else if (dragState.mode === 'move' && (dragState.dx || dragState.dy)) {
+      pushOp({ op: 'move', kind: dragState.kind, elem: dragState.elem,
+               dx: dragState.dx, dy: dragState.dy });
+      afterEdit();
+    } else if (dragState.mode === 'endpoint') {
+      const e = dragState.elem;
+      const i = dragState.which ? e.pts.length - 1 : 0;
+      pushOp({ op: 'move-pt', kind: 'road', elem: e, which: i,
+               before: dragState.before, after: { x: e.pts[i].x, y: e.pts[i].y } });
+      // move-pt handled via custom replay below
+      afterEdit();
+    } else if (dragState.mode === 'erase' && dragState.ops.length) {
+      pushOp({ op: 'batch', ops: dragState.ops });
+      afterEdit();
+    }
+    dragState = null;
+    snapPt = null;
+    dirty = true;
+    return;
+  }
+  if (stroke) {
+    let pts = strokeShift && ROAD_STYLES[tool] ? [stroke[0], stroke[stroke.length - 1]] : stroke;
+    if (ROAD_STYLES[tool]) {
+      const snap = snapToRoads(pts[pts.length - 1]);
+      if (snap && pts.length > 1) pts = pts.slice(0, -1).concat([snap]);
+      finishRoad(tool, pts);
+    } else if (AREA_STYLES[tool]) finishArea(tool, pts);
+    stroke = null;
+    snapPt = null;
+    dirty = true;
+  }
+}
+
+function eraseAt(p, ops) {
+  const hit = hitTest(p);
+  if (!hit) return;
+  const op = { op: 'del', kind: hit.kind, elem: hit.elem };
+  applyOp(op, false);
+  ops.push(op);
+}
+
+// move-pt ops need their own undo/redo replay
+const baseApplyOp = applyOp;
+applyOp = function (op, reverse) {
+  if (op.op === 'move-pt') {
+    const src = reverse ? op.before : op.after;
+    op.elem.pts[op.which].x = src.x;
+    op.elem.pts[op.which].y = src.y;
+    op.elem.bbox = bboxOf(op.elem.pts);
+    afterEdit();
+    return;
+  }
+  baseApplyOp(op, reverse);
+};
+
+function clampCamera() {
+  const m = 600 / cam.z;
+  cam.x = clamp(cam.x, MAP.x - m, MAP.x + MAP.w + m);
+  cam.y = clamp(cam.y, MAP.y - m, MAP.y + MAP.h + m);
+}
+
+// ---------- Mouse ----------
+canvas.addEventListener('mousedown', e => {
+  const rect = canvas.getBoundingClientRect();
+  strokeShift = e.shiftKey;
+  if (e.button === 1 || e.button === 2) {
+    pointerDown(e.clientX - rect.left, e.clientY - rect.top, { pan: true });
+    e.preventDefault();
+  } else if (e.button === 0) {
+    pointerDown(e.clientX - rect.left, e.clientY - rect.top, {});
   }
 });
 
 window.addEventListener('mousemove', e => {
   const rect = canvas.getBoundingClientRect();
-  const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-
-  if (panState) {
-    cam.x = panState.camX - (e.clientX - panState.sx) / cam.z;
-    cam.y = panState.camY - (e.clientY - panState.sy) / cam.z;
-    clampCamera();
-    return;
-  }
-
-  hoverTile = tileAt(sx, sy);
-
-  if (lineStart && hoverTile) {
-    previewTiles = new Map();
-    for (const i of lPath(lineStart.x, lineStart.y, hoverTile.x, hoverTile.y))
-      previewTiles.set(i, TOOL_TILE[tool]);
-  } else if (painting && hoverTile) {
-    applyTool(hoverTile);
-  }
+  strokeShift = e.shiftKey;
+  pointerMove(e.clientX - rect.left, e.clientY - rect.top);
 });
 
-window.addEventListener('mouseup', e => {
-  if (panState) {
-    panState = null;
-    canvas.classList.remove('dragging');
-    return;
-  }
-  if (lineStart) {
-    beginStroke();
-    if (previewTiles) for (const [i, t] of previewTiles) strokeSet(i, t);
-    endStroke();
-    lineStart = null;
-    previewTiles = null;
-  }
-  if (painting) {
-    painting = false;
-    endStroke();
-  }
-});
-
-canvas.addEventListener('mouseleave', () => { hoverTile = null; });
+window.addEventListener('mouseup', () => pointerUp());
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
-// zoom on wheel, anchored at the cursor
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
@@ -594,35 +893,10 @@ canvas.addEventListener('wheel', e => {
   cam.y += before.y - after.y;
   clampCamera();
   updateZoomLabel();
+  dirty = true;
 }, { passive: false });
 
-function clampCamera() {
-  const margin = 40 / cam.z;
-  cam.x = clamp(cam.x, -margin, WORLD + margin);
-  cam.y = clamp(cam.y, -margin, WORLD + margin);
-}
-
-function zoomBy(factor) {
-  cam.z = clamp(cam.z * factor, ZOOM_MIN, ZOOM_MAX);
-  updateZoomLabel();
-}
-
-function fitView() {
-  cam.x = WORLD / 2;
-  cam.y = WORLD / 2;
-  cam.z = Math.min(canvas.clientWidth, canvas.clientHeight) / WORLD * 0.95;
-  cam.z = clamp(cam.z, ZOOM_MIN, ZOOM_MAX);
-  updateZoomLabel();
-}
-
-function updateZoomLabel() {
-  $('zoomLabel').textContent = Math.round(cam.z * 100) + '%';
-}
-
-// =========================================================
-// Input — touch (1 finger draw/pan, 2 fingers pinch-zoom + pan)
-// =========================================================
-let touchMode = null; // 'draw' | 'pinch'
+// ---------- Touch ----------
 let pinchPrev = null;
 
 function touchPos(t) {
@@ -633,37 +907,21 @@ function touchPos(t) {
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   if (e.touches.length === 2) {
-    // abandon any in-progress draw and start pinching
-    if (touchMode === 'draw') { lineStart = null; previewTiles = null;
-      if (painting) { painting = false; endStroke(); } }
-    touchMode = 'pinch';
+    stroke = null;
+    if (dragState && dragState.mode !== 'pan') pointerUp();
+    dragState = null;
     const a = touchPos(e.touches[0]), b = touchPos(e.touches[1]);
-    pinchPrev = { d: Math.hypot(a.x - b.x, a.y - b.y),
-                  cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+    pinchPrev = { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
     return;
   }
+  pinchPrev = null;
   const p = touchPos(e.touches[0]);
-  if (tool === 'pan') {
-    touchMode = 'pinch'; // single-finger pan uses the same path
-    pinchPrev = { d: 0, cx: p.x, cy: p.y };
-    return;
-  }
-  touchMode = 'draw';
-  const tile = tileAt(p.x, p.y);
-  if (!tile) return;
-  if (LINE_TOOLS.has(tool)) {
-    lineStart = tile;
-    previewTiles = new Map([[idx(tile.x, tile.y), TOOL_TILE[tool]]]);
-  } else {
-    painting = true;
-    beginStroke();
-    applyTool(tile);
-  }
+  pointerDown(p.x, p.y, {});
 }, { passive: false });
 
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
-  if (touchMode === 'pinch' && pinchPrev) {
+  if (pinchPrev) {
     let cx, cy, d = 0;
     if (e.touches.length >= 2) {
       const a = touchPos(e.touches[0]), b = touchPos(e.touches[1]);
@@ -685,50 +943,32 @@ canvas.addEventListener('touchmove', e => {
     cam.y -= (cy - pinchPrev.cy) / cam.z;
     clampCamera();
     pinchPrev = { d, cx, cy };
+    dirty = true;
     return;
   }
-  if (touchMode === 'draw') {
-    const p = touchPos(e.touches[0]);
-    const tile = tileAt(p.x, p.y);
-    if (!tile) return;
-    if (lineStart) {
-      previewTiles = new Map();
-      for (const i of lPath(lineStart.x, lineStart.y, tile.x, tile.y))
-        previewTiles.set(i, TOOL_TILE[tool]);
-    } else if (painting) {
-      applyTool(tile);
-    }
-  }
+  const p = touchPos(e.touches[0]);
+  pointerMove(p.x, p.y);
 }, { passive: false });
 
 canvas.addEventListener('touchend', e => {
   if (e.touches.length > 0) {
-    if (touchMode === 'pinch') {
+    if (pinchPrev) {
       const p = touchPos(e.touches[0]);
       pinchPrev = { d: 0, cx: p.x, cy: p.y };
     }
     return;
   }
-  if (lineStart) {
-    beginStroke();
-    if (previewTiles) for (const [i, t] of previewTiles) strokeSet(i, t);
-    endStroke();
-    lineStart = null;
-    previewTiles = null;
-  }
-  if (painting) { painting = false; endStroke(); }
-  touchMode = null;
-  pinchPrev = null;
+  if (pinchPrev) { pinchPrev = null; return; }
+  pointerUp();
 });
 
-// =========================================================
-// Minimap navigation
-// =========================================================
+// ---------- Minimap ----------
 function miniJump(e) {
   const rect = mini.getBoundingClientRect();
-  cam.x = (e.clientX - rect.left) / rect.width * WORLD;
-  cam.y = (e.clientY - rect.top) / rect.height * WORLD;
+  cam.x = (e.clientX - rect.left) / rect.width * MAP.w;
+  cam.y = (e.clientY - rect.top) / rect.height * MAP.h;
   clampCamera();
+  dirty = true;
 }
 mini.addEventListener('mousedown', e => {
   miniJump(e);
@@ -740,29 +980,33 @@ mini.addEventListener('mousedown', e => {
 });
 
 // =========================================================
+// Zoom controls
+// =========================================================
+function zoomBy(f) {
+  cam.z = clamp(cam.z * f, ZOOM_MIN, ZOOM_MAX);
+  updateZoomLabel();
+  dirty = true;
+}
+
+function fitView() {
+  cam.x = MAP.x + MAP.w / 2;
+  cam.y = MAP.y + MAP.h / 2;
+  cam.z = clamp(Math.min(canvas.clientWidth, canvas.clientHeight) / MAP.w * 0.95, ZOOM_MIN, ZOOM_MAX);
+  updateZoomLabel();
+  dirty = true;
+}
+
+function updateZoomLabel() {
+  $('zoomLabel').textContent = Math.round(cam.z * 100) + '%';
+}
+
+// =========================================================
 // Save / load / export
 // =========================================================
-function gridToBase64() {
-  let bin = '';
-  for (let i = 0; i < grid.length; i += 4096)
-    bin += String.fromCharCode.apply(null, grid.subarray(i, i + 4096));
-  return btoa(bin);
-}
-
-function base64ToGrid(b64) {
-  const bin = atob(b64);
-  const out = new Uint8Array(GRID * GRID);
-  for (let i = 0; i < Math.min(bin.length, out.length); i++)
-    out[i] = bin.charCodeAt(i) & 7;
-  return out;
-}
-
 function saveCity(silent) {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      name: $('cityName').value,
-      grid: gridToBase64(),
-      ts: Date.now()
+      name: $('cityName').value, city, nextId, ts: Date.now()
     }));
     unsaved = false;
     if (!silent) toast('City saved ✓');
@@ -776,8 +1020,12 @@ function loadCity() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
+    if (!data.city) return false;
+    city = data.city;
+    nextId = data.nextId || 1;
     if (data.name) $('cityName').value = data.name;
-    if (data.grid) grid = base64ToGrid(data.grid);
+    for (const list of [city.roads, city.areas, city.labels])
+      for (const e of list) e.bbox = bboxOf(e.pts);
     return true;
   } catch (err) {
     return false;
@@ -785,33 +1033,33 @@ function loadCity() {
 }
 
 function exportPNG() {
-  const scale = 6; // px per tile
+  const all = [...city.roads, ...city.areas, ...city.labels];
+  let b = all.length
+    ? all.reduce((acc, e) => ({
+        x0: Math.min(acc.x0, e.bbox.x0), y0: Math.min(acc.y0, e.bbox.y0),
+        x1: Math.max(acc.x1, e.bbox.x1), y1: Math.max(acc.y1, e.bbox.y1)
+      }), { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity })
+    : { x0: 0, y0: 0, x1: MAP.w, y1: MAP.h };
+  const pad = 150;
+  b = { x0: b.x0 - pad, y0: b.y0 - pad, x1: b.x1 + pad, y1: b.y1 + pad };
+  const bw = b.x1 - b.x0, bh = b.y1 - b.y0;
+  const scale = Math.min(2400 / bw, 2400 / bh, 2);
+
   const out = document.createElement('canvas');
-  out.width = GRID * scale;
-  out.height = GRID * scale;
-  const octx = out.getContext('2d');
-  octx.fillStyle = COLORS.grass;
-  octx.fillRect(0, 0, out.width, out.height);
-  for (let y = 0; y < GRID; y++) {
-    for (let x = 0; x < GRID; x++) {
-      const t = grid[idx(x, y)];
-      if (t === T.EMPTY) continue;
-      octx.fillStyle = MINI_COLORS[t];
-      octx.fillRect(x * scale, y * scale, scale, scale);
-      if (t === T.HIGHWAY) {       // make highways read as dark with a stripe
-        octx.fillStyle = COLORS.hwy;
-        octx.fillRect(x * scale, y * scale, scale, scale);
-        octx.fillStyle = COLORS.hwyStripe;
-        octx.fillRect(x * scale, y * scale + scale * 0.4, scale, scale * 0.2);
-      }
-    }
-  }
-  // title stamp
-  octx.fillStyle = 'rgba(0,0,0,0.55)';
-  octx.fillRect(0, out.height - 34, out.width, 34);
-  octx.fillStyle = '#fff';
-  octx.font = '600 18px system-ui, sans-serif';
-  octx.fillText($('cityName').value || 'My City', 12, out.height - 11);
+  out.width = Math.round(bw * scale);
+  out.height = Math.round(bh * scale) + 44;
+  const g = out.getContext('2d');
+  g.fillStyle = '#7fae62';
+  g.fillRect(0, 0, out.width, out.height);
+  g.setTransform(scale, 0, 0, scale, -b.x0 * scale, -b.y0 * scale);
+  renderScene(g, b, scale);
+
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = 'rgba(0,0,0,0.6)';
+  g.fillRect(0, out.height - 44, out.width, 44);
+  g.fillStyle = '#fff';
+  g.font = '600 20px system-ui, sans-serif';
+  g.fillText($('cityName').value || 'My City', 14, out.height - 15);
 
   const a = document.createElement('a');
   a.download = ($('cityName').value || 'city').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-') + '.png';
@@ -822,9 +1070,11 @@ function exportPNG() {
 
 function clearCity() {
   if (!confirm('Clear the entire map? This cannot be undone.')) return;
-  grid = new Uint8Array(GRID * GRID);
+  city = { roads: [], areas: [], labels: [] };
+  selected = null;
   undoStack.length = 0;
   redoStack.length = 0;
+  updateUndoButtons();
   afterEdit();
   toast('Map cleared');
 }
@@ -844,21 +1094,15 @@ function toast(msg) {
 document.querySelectorAll('.tool').forEach(b =>
   b.addEventListener('click', () => setTool(b.dataset.tool)));
 
-document.querySelectorAll('.brush').forEach(b =>
-  b.addEventListener('click', () => {
-    brush = parseInt(b.dataset.size, 10);
-    document.querySelectorAll('.brush').forEach(x =>
-      x.classList.toggle('active', x === b));
-  }));
-
 $('btnUndo').addEventListener('click', undo);
 $('btnRedo').addEventListener('click', redo);
 $('btnZoomIn').addEventListener('click', () => zoomBy(1.25));
 $('btnZoomOut').addEventListener('click', () => zoomBy(1 / 1.25));
 $('btnFit').addEventListener('click', fitView);
 $('btnGrid').addEventListener('click', () => {
-  showGrid = !showGrid;
-  $('btnGrid').classList.toggle('active', showGrid);
+  showDots = !showDots;
+  $('btnGrid').classList.toggle('active', showDots);
+  dirty = true;
 });
 $('btnSave').addEventListener('click', () => saveCity(false));
 $('btnExport').addEventListener('click', exportPNG);
@@ -866,27 +1110,35 @@ $('btnClear').addEventListener('click', clearCity);
 $('cityName').addEventListener('change', () => { unsaved = true; });
 $('hintClose').addEventListener('click', () => $('hint').remove());
 
-const TOOL_KEYS = ['pan', 'road', 'highway', 'res', 'com', 'ind', 'park', 'water', 'erase'];
+const TOOL_KEYS = { 1: 'select', 2: 'highway', 3: 'avenue', 4: 'street', 5: 'path',
+                    6: 'res', 7: 'com', 8: 'ind', 9: 'park' };
 
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   if (e.code === 'Space') { spaceHeld = true; canvas.classList.add('panning'); e.preventDefault(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-    e.preventDefault();
-    e.shiftKey ? redo() : undo();
-    return;
+    e.preventDefault(); e.shiftKey ? redo() : undo(); return;
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveCity(false); return; }
-  if (e.key >= '1' && e.key <= '9') { setTool(TOOL_KEYS[+e.key - 1]); return; }
+  if (TOOL_KEYS[e.key]) { setTool(TOOL_KEYS[e.key]); return; }
   switch (e.key) {
+    case 'w': case 'W': setTool('water'); break;
+    case 'l': case 'L': setTool('label'); break;
+    case 'e': case 'E': setTool('erase'); break;
+    case 'v': case 'V': setTool('select'); break;
     case 'g': case 'G': $('btnGrid').click(); break;
     case '+': case '=': zoomBy(1.25); break;
     case '-': case '_': zoomBy(1 / 1.25); break;
     case '0': fitView(); break;
+    case 'Delete': case 'Backspace':
+      if (selected) {
+        commit({ op: 'del', kind: selected.kind, elem: selected.elem });
+        selected = null;
+      }
+      break;
     case 'Escape':
-      lineStart = null; previewTiles = null;
-      if (painting) { painting = false; endStroke(); }
+      stroke = null; snapPt = null; selected = null; dirty = true;
       break;
   }
 });
@@ -900,55 +1152,106 @@ window.addEventListener('keyup', e => {
 
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('beforeunload', () => { if (unsaved) saveCity(true); });
-setInterval(() => { if (unsaved) saveCity(true); }, 15000);  // autosave
+setInterval(() => { if (unsaved) saveCity(true); }, 15000);
 
 // =========================================================
-// A small starter town so the canvas isn't empty
+// Starter city — a river, a sweeping highway, an avenue loop
+// with streets and organic districts
 // =========================================================
-function seedStarterTown() {
-  const c = Math.floor(GRID / 2);
-  const set = (x, y, t) => { if (inGrid(x, y)) grid[idx(x, y)] = t; };
-
-  // highway across the map
-  for (let x = 0; x < GRID; x++) set(x, c - 14, T.HIGHWAY);
-
-  // main avenue + cross streets
-  for (let y = c - 14; y <= c + 16; y++) set(c, y, T.ROAD);
-  for (const dy of [-6, 0, 8, 16]) {
-    for (let x = c - 12; x <= c + 12; x++) set(x, c + dy, T.ROAD);
-  }
-  for (const dx of [-12, -6, 6, 12]) {
-    for (let y = c - 6; y <= c + 16; y++) set(c + dx, y, T.ROAD);
-  }
-
-  // zones in the blocks
-  const fillBlock = (x0, y0, x1, y1, t) => {
-    for (let y = y0; y <= y1; y++)
-      for (let x = x0; x <= x1; x++)
-        if (inGrid(x, y) && grid[idx(x, y)] === T.EMPTY) set(x, y, t);
+function seedCity() {
+  const addRoad = (type, pts) => {
+    const r = { id: nextId++, type, pts, bbox: bboxOf(pts) };
+    city.roads.push(r);
+    return r;
   };
-  fillBlock(c - 11, c - 5, c - 7, c - 1, T.COM);
-  fillBlock(c - 5,  c - 5, c - 1, c - 1, T.COM);
-  fillBlock(c + 1,  c - 5, c + 5, c - 1, T.RES);
-  fillBlock(c + 7,  c - 5, c + 11, c - 1, T.RES);
-  fillBlock(c - 11, c + 1, c - 7, c + 7, T.RES);
-  fillBlock(c - 5,  c + 1, c - 1, c + 7, T.PARK);
-  fillBlock(c + 1,  c + 1, c + 5, c + 7, T.RES);
-  fillBlock(c + 7,  c + 1, c + 11, c + 7, T.IND);
+  const blob = (cx, cy, r, seed, n = 14) => {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const rr = r * (0.75 + 0.3 * hash01(seed + i));
+      pts.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr });
+    }
+    return chaikinClosed(pts);
+  };
+  const addArea = (type, pts) => {
+    const a = { id: nextId++, type, pts, bbox: bboxOf(pts) };
+    generateContents(a);
+    city.areas.push(a);
+    return a;
+  };
 
-  // a river along the east side
-  for (let y = 0; y < GRID; y++) {
-    const bend = Math.round(Math.sin(y / 17) * 3);
-    for (let w = 0; w < 4; w++) set(c + 26 + bend + w, y, T.WATER);
+  // river crossing the map
+  const top = [], bottom = [];
+  for (let x = -100; x <= MAP.w + 100; x += 250) {
+    const yc = 5300 + Math.sin(x / 1100) * 420 + Math.sin(x / 430) * 130;
+    top.push({ x, y: yc - 130 });
+    bottom.unshift({ x, y: yc + 130 });
   }
+  const river = { id: nextId++, type: 'water', pts: top.concat(bottom) };
+  river.bbox = bboxOf(river.pts);
+  city.areas.push(river);
+
+  // sweeping highway
+  const hwy = [];
+  for (let x = -100; x <= MAP.w + 100; x += 300)
+    hwy.push({ x, y: 2500 + Math.sin(x / 1400 + 1.2) * 600 });
+  addRoad('highway', hwy);
+
+  // avenue ring around downtown
+  const C = { x: 3900, y: 3500 };
+  const ring = [];
+  for (let i = 0; i <= 26; i++) {
+    const a = (i / 26) * Math.PI * 2;
+    const rr = 850 * (0.9 + 0.15 * Math.sin(a * 3 + 1));
+    ring.push({ x: C.x + Math.cos(a) * rr, y: C.y + Math.sin(a) * rr });
+  }
+  addRoad('avenue', ring);
+
+  // avenues out of the ring + connector to highway
+  addRoad('avenue', [{ x: C.x - 850, y: C.y }, { x: C.x - 1900, y: C.y - 150 }, { x: C.x - 2700, y: C.y - 600 }]);
+  addRoad('avenue', [{ x: C.x + 880, y: C.y - 100 }, { x: C.x + 2000, y: C.y - 300 }, { x: C.x + 2900, y: C.y - 200 }]);
+  addRoad('avenue', [{ x: C.x, y: C.y - 780 }, { x: C.x + 100, y: C.y - 1500 }, { x: C.x - 50, y: 2520 }]);
+  addRoad('avenue', [{ x: C.x, y: C.y + 840 }, { x: C.x - 100, y: C.y + 1500 }, { x: C.x + 60, y: 5180 }]);
+
+  // downtown streets — slightly bent grid inside the ring
+  for (let k = -2; k <= 2; k++) {
+    const pts = [];
+    for (let x = C.x - 700; x <= C.x + 700; x += 175)
+      pts.push({ x, y: C.y + k * 280 + Math.sin(x / 500 + k) * 60 });
+    addRoad('street', pts);
+    const vpts = [];
+    for (let y = C.y - 700; y <= C.y + 700; y += 175)
+      vpts.push({ x: C.x + k * 280 + Math.sin(y / 460 - k) * 60, y });
+    addRoad('street', vpts);
+  }
+
+  // riverside path
+  const path = [];
+  for (let x = 1400; x <= 6800; x += 300)
+    path.push({ x, y: 5300 + Math.sin(x / 1100) * 420 + Math.sin(x / 430) * 130 - 220 });
+  addRoad('path', path);
+
+  // districts (after roads so buildings can align & keep clear)
+  addArea('com', blob(C.x, C.y, 620, 11));
+  addArea('res', blob(C.x - 1700, C.y + 300, 700, 22, 16));
+  addArea('res', blob(C.x + 1800, C.y - 500, 650, 33, 16));
+  addArea('ind', blob(C.x - 1500, 2100, 600, 44));
+  addArea('park', blob(C.x + 900, C.y + 1100, 420, 55));
+  addArea('park', blob(2400, 4700, 380, 66));
+
+  city.labels.push(
+    { id: nextId++, text: 'Downtown', pts: [{ x: C.x, y: C.y - 200 }], size: 90 },
+    { id: nextId++, text: 'Riverside', pts: [{ x: 3200, y: 4950 }], size: 70 }
+  );
+  for (const l of city.labels) l.bbox = bboxOf(l.pts);
 }
 
 // =========================================================
 // Boot
 // =========================================================
 resizeCanvas();
-if (!loadCity()) seedStarterTown();
-setTool('road');
+if (!loadCity()) seedCity();
+setTool('street');
 fitView();
 updateStats();
 updateUndoButtons();
