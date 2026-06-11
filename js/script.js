@@ -1,16 +1,66 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Navigation links smooth scrolling - simplified for performance
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    // Dark / light theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+
+    function applyThemeIcon() {
+        if (!themeToggle) return;
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        themeToggle.innerHTML = dark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    }
+
+    if (themeToggle) {
+        applyThemeIcon();
+        themeToggle.addEventListener('click', function() {
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            applyThemeIcon();
+        });
+    }
+
+    // Typed rotating role in the hero
+    const typedEl = document.getElementById('typedText');
+    if (typedEl) {
+        const roles = (typedEl.dataset.roles || '').split('|').filter(Boolean);
+        if (prefersReducedMotion || roles.length === 0) {
+            typedEl.textContent = roles[0] || '';
+        } else {
+            let roleIndex = 0, charIndex = 0, deleting = false;
+
+            function tick() {
+                const role = roles[roleIndex];
+                charIndex += deleting ? -1 : 1;
+                typedEl.textContent = role.slice(0, charIndex);
+
+                let delay = deleting ? 38 : 75;
+                if (!deleting && charIndex === role.length) {
+                    delay = 1800;
+                    deleting = true;
+                } else if (deleting && charIndex === 0) {
+                    deleting = false;
+                    roleIndex = (roleIndex + 1) % roles.length;
+                    delay = 350;
+                }
+                setTimeout(tick, delay);
+            }
+
+            setTimeout(tick, 900);
+        }
+    }
+
+    // Smooth scrolling for in-page navigation
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
+            const targetElement = document.querySelector(this.getAttribute('href'));
             if (targetElement) {
-                // Use instant scrolling without animation
+                e.preventDefault();
                 window.scrollTo({
                     top: targetElement.offsetTop - 80,
-                    behavior: 'auto'
+                    behavior: prefersReducedMotion ? 'auto' : 'smooth'
                 });
             }
         });
@@ -26,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function() {
             burger.classList.toggle('active');
         });
 
-        // Close menu when a nav link is clicked
         navMenu.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 navMenu.classList.remove('active');
@@ -35,64 +84,33 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Education card: courses moved to dedicated page, no expand needed
-
-    // Project card expand functionality - now for see-more-btn
-    const seeMoreBtns = document.querySelectorAll('.see-more-btn');
-    console.log('Found', seeMoreBtns.length, 'See More buttons');
-    seeMoreBtns.forEach(btn => {
+    // Project card expand/collapse
+    document.querySelectorAll('.see-more-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const projectCard = this.closest('.project-card');
             projectCard.classList.toggle('expanded');
-            
-            // Update button text
+
             const isExpanded = projectCard.classList.contains('expanded');
-            this.innerHTML = isExpanded ? 
-                'See Less <i class="fas fa-chevron-up"></i>' : 
+            this.innerHTML = isExpanded ?
+                'See Less <i class="fas fa-chevron-up"></i>' :
                 'See More <i class="fas fa-chevron-down"></i>';
-            
-            // Ensure that if expanded, the card is fully visible
+
             if (isExpanded) {
-                // Scroll to keep the project card in view after expansion
                 setTimeout(() => {
                     const cardRect = projectCard.getBoundingClientRect();
                     if (cardRect.bottom > window.innerHeight) {
                         window.scrollBy({
                             top: Math.min(100, cardRect.bottom - window.innerHeight + 20),
-                            behavior: 'smooth'
+                            behavior: prefersReducedMotion ? 'auto' : 'smooth'
                         });
                     }
                 }, 50);
             }
-            
-            console.log('Toggled project card expanded state:', isExpanded);
         });
     });
 
-    // Make project cards visible by default
-    document.querySelectorAll('.project-card').forEach(card => {
-        card.classList.add('visible');
-    });
-
-    // Skills section expand button functionality
-    const skillsExpandBtns = document.querySelectorAll('.skills-expand-btn');
-    skillsExpandBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const skillsGrid = this.previousElementSibling;
-            skillsGrid.classList.toggle('expanded');
-            this.classList.toggle('expanded');
-            
-            // Update button text
-            const isExpanded = skillsGrid.classList.contains('expanded');
-            this.innerHTML = isExpanded ? 
-                'Show Less <i class="fas fa-chevron-up"></i>' : 
-                'Show More <i class="fas fa-chevron-down"></i>';
-        });
-    });
-
-    // Timeline expand functionality
-    const timelineExpandBtns = document.querySelectorAll('.timeline-expand-btn');
-    timelineExpandBtns.forEach(btn => {
+    // Timeline expand/collapse — only one item open at a time
+    document.querySelectorAll('.timeline-expand-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const timelineItem = this.closest('.timeline-item');
             const willExpand = !timelineItem.classList.contains('expanded');
@@ -108,124 +126,149 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             timelineItem.classList.toggle('expanded', willExpand);
-
-            this.innerHTML = willExpand ? 
-                'Show Less <i class="fas fa-chevron-up"></i>' : 
+            this.innerHTML = willExpand ?
+                'Show Less <i class="fas fa-chevron-up"></i>' :
                 'View Details <i class="fas fa-chevron-down"></i>';
         });
     });
 
-    // Handle header style on scroll - simplified
-    const header = document.querySelector('header');
-    if (header) {
-        window.addEventListener('scroll', function() {
-            // Simply add/remove class without transitions
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
+    // 3D tilt on project cards (desktop pointers only)
+    if (finePointer && !prefersReducedMotion) {
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('mousemove', function(e) {
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                card.style.transform =
+                    'translateY(-5px) perspective(900px) rotateX(' + (-y * 3.5).toFixed(2) +
+                    'deg) rotateY(' + (x * 4.5).toFixed(2) + 'deg)';
+            });
+            card.addEventListener('mouseleave', function() {
+                card.style.transform = '';
+            });
+        });
+
+        // Cursor-tracking spotlight on skill cards
+        document.querySelectorAll('.skill-map-card').forEach(card => {
+            card.addEventListener('mousemove', function(e) {
+                const rect = card.getBoundingClientRect();
+                card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+                card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+            });
         });
     }
 
-    // Update active navigation link on scroll
-    function updateActiveNavLink() {
-        const sections = document.querySelectorAll('section');
-        const navLinks = document.querySelectorAll('.nav-links a');
-        
+    // Scroll-driven UI: header style, progress bar, active nav link
+    const header = document.querySelector('header');
+    const backToTop = document.getElementById('backToTop');
+    const progressBar = document.querySelector('.scroll-progress');
+    const sections = document.querySelectorAll('section[id]');
+    const allNavLinks = document.querySelectorAll('.nav-links a');
+    let ticking = false;
+
+    function onScroll() {
+        const scrollY = window.scrollY;
+
+        if (header) {
+            header.classList.toggle('scrolled', scrollY > 50);
+        }
+
+        if (backToTop) {
+            backToTop.classList.toggle('visible', scrollY > 600);
+        }
+
+        if (progressBar) {
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            progressBar.style.width = docHeight > 0 ? (scrollY / docHeight) * 100 + '%' : '0%';
+        }
+
         let currentSection = '';
-        
         sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            
-            // Add buffer to make activation happen slightly before the section top
-            if (window.scrollY >= (sectionTop - 150)) {
+            if (scrollY >= section.offsetTop - 150) {
                 currentSection = section.getAttribute('id');
             }
         });
-        
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${currentSection}`) {
-                link.classList.add('active');
+
+        allNavLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + currentSection);
+        });
+
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(onScroll);
+            ticking = true;
+        }
+    }, { passive: true });
+
+    onScroll();
+
+    // Animated counters for the stats row
+    function animateCounter(el) {
+        const text = el.textContent.trim();
+        const match = text.match(/^(\d+)(.*)$/);
+        if (!match || prefersReducedMotion) return;
+
+        const target = parseInt(match[1], 10);
+        const suffix = match[2];
+        const duration = 1200;
+        const start = performance.now();
+
+        function step(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(target * eased) + suffix;
+            if (progress < 1) requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(step);
+    }
+
+    const statsObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.querySelectorAll('.stat-number').forEach(animateCounter);
+                observer.unobserve(entry.target);
             }
         });
-    }
-    
-    // Run on scroll and on page load
-    window.addEventListener('scroll', updateActiveNavLink);
-    window.addEventListener('DOMContentLoaded', updateActiveNavLink);
+    }, { threshold: 0.4 });
 
-    // Enable scroll animations for timeline/boxes
-    // This will handle showing elements as they come into view when scrolling
-    
-    // IntersectionObserver to animate elements when they come into view
+    const statsContainer = document.querySelector('.stats-container');
+    if (statsContainer) statsObserver.observe(statsContainer);
+
+    // Reveal-on-scroll with a small stagger between siblings
     const animateOnScroll = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                // Once the animation is triggered, no need to observe anymore
+                // Drop the stagger delay once revealed so hover effects stay snappy
+                setTimeout(() => { entry.target.style.transitionDelay = ''; }, 1100);
                 observer.unobserve(entry.target);
             }
         });
-    }, {
-        root: null, // viewport
-        threshold: 0.1, // 10% of the item is visible
-        rootMargin: '0px'
-    });
-    
-    // Observe timeline items, project cards, and other animated elements
-    document.querySelectorAll('.timeline-item, .project-card, .skill-category, .education-card, .course-item').forEach(item => {
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.timeline-item, .project-card, .education-card, .skill-map-card').forEach((item, index) => {
+        const siblingIndex = Array.prototype.indexOf.call(item.parentElement.children, item);
+        item.style.transitionDelay = (Math.min(siblingIndex, 5) * 70) + 'ms';
         animateOnScroll.observe(item);
-        
-        // Ensure project cards don't start expanded
+
         if (item.classList.contains('project-card')) {
             item.classList.remove('expanded');
         }
     });
-    
-    // Explicitly ensure all project expanded contents are initially hidden
-    document.querySelectorAll('.project-expanded-content').forEach(content => {
-        content.style.display = 'none';
-    });
 
-    // Contact form submission handling
-    const contactForm = document.getElementById('contactForm');
-    const formStatus = document.getElementById('form-status');
-    
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent default form submission
-            
-            // Show sending message
-            formStatus.innerHTML = '<p class="sending-message">Sending message...</p>';
-            
-            // Get form data
-            const formData = new FormData(this);
-            
-            // Send AJAX request
-            fetch('process-form.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    formStatus.innerHTML = '<p class="success-message">Message sent successfully!</p>';
-                    contactForm.reset();
-                    // Redirect to thank you page after 2 seconds
-                    setTimeout(() => {
-                        window.location.href = 'thank-you.html';
-                    }, 2000);
-                } else {
-                    formStatus.innerHTML = '<p class="error-message">Error: ' + data.message + '</p>';
-                }
-            })
-            .catch(error => {
-                formStatus.innerHTML = '<p class="error-message">Error sending message. Please try again.</p>';
-                console.error('Error:', error);
-            });
+    // Back to top
+    if (backToTop) {
+        backToTop.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
         });
     }
-}); 
+
+    // Keep the footer year current
+    document.querySelectorAll('.footer-year').forEach(el => {
+        el.textContent = new Date().getFullYear();
+    });
+});
