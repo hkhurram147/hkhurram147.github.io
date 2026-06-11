@@ -8,40 +8,46 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         .thank-you-container {
-            min-height: 80vh;
+            min-height: 85vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 2rem;
+            padding: 7rem 2rem 3rem;
         }
-        
+
         .thank-you-icon {
-            font-size: 5rem;
-            color: var(--secondary-color);
-            margin-bottom: 2rem;
+            font-size: 4.5rem;
+            color: var(--success);
+            margin-bottom: 1.75rem;
+            animation: rise-in .7s var(--ease-out) both;
         }
-        
+
         .thank-you-title {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 5vw, 2.75rem);
             margin-bottom: 1rem;
-            color: var(--primary-color);
+            animation: rise-in .7s var(--ease-out) .1s both;
         }
-        
+
         .thank-you-message {
-            font-size: 1.2rem;
-            max-width: 600px;
+            font-size: 1.1rem;
+            max-width: 560px;
             margin-bottom: 2rem;
-            color: var(--text-light);
+            color: var(--text-muted);
+            animation: rise-in .7s var(--ease-out) .2s both;
+        }
+
+        .thank-you-container .btn {
+            animation: rise-in .7s var(--ease-out) .3s both;
         }
     </style>
 </head>
 <body>
-    <header>
+    <header class="scrolled">
         <nav>
             <div class="container">
                 <div class="logo">HK</div>
@@ -69,12 +75,14 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2024 Hassan Khurram. All rights reserved.</p>
+            <p>&copy; <span class="footer-year">2026</span> Hassan Khurram. All rights reserved.</p>
             <div class="social-links">
                 <a href="https://linkedin.com/in/hkhurram147" target="_blank"><i class="fab fa-linkedin"></i></a>
                 <a href="https://github.com/hkhurram147" target="_blank"><i class="fab fa-github"></i></a>
             </div>
         </div>
     </footer>
+
+    <script src="js/script.js"></script>
 </body>
 </html> 
