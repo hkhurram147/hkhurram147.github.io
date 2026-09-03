@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const t = scrollY / vh;
             if (heroText) {
                 heroText.style.transform = 'translateY(' + (scrollY * 0.18) + 'px)';
-                heroText.style.opacity = String(1 - t * 1.1);
+                heroText.style.opacity = String(clamp(1 - t * 1.1, 0, 1));
             }
             if (profileArea) {
                 profileArea.style.transform = 'translateY(' + (scrollY * 0.08) + 'px)';

@@ -431,6 +431,9 @@ section {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    /* Keep the toggle and burger above the full-screen mobile menu overlay */
+    position: relative;
+    z-index: 1001;
 }
 
 .theme-toggle,
