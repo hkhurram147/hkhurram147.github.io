@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Key Courses | Hassan Khurram</title>
+    <link rel="icon" href="images/uoft-logo.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,50 +22,48 @@
 </head>
 <body>
     <div class="scroll-progress" aria-hidden="true"></div>
-    <header>
-        <nav>
-            <div class="container">
-                <div class="logo">HK</div>
-                <ul class="nav-links">
-                    <li><a href="index.html#home">Home</a></li>
-                    <li><a href="index.html#about">About</a></li>
-                    <li><a href="index.html#education">Education</a></li>
-                    <li><a href="#courses" class="active">Courses</a></li>
-                    <li><a href="index.html#experience">Experience</a></li>
-                    <li><a href="index.html#skills">Skills</a></li>
-                    <li><a href="index.html#projects">Projects</a></li>
-                    <li><a href="index.html#contact">Contact</a></li>
-                </ul>
-                <div class="nav-actions">
-                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <div class="burger" id="burger" aria-label="Toggle menu">
-                        <div></div><div></div><div></div>
-                    </div>
-                </div>
+    <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+    <header class="site-header" id="siteHeader">
+        <nav class="nav-pill" aria-label="Primary">
+            <a href="index.html" class="logo" aria-label="Home">HK</a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#education">Education</a></li>
+                <li><a href="#courses" class="active">Courses</a></li>
+                <li><a href="index.html#experience">Experience</a></li>
+                <li><a href="index.html#skills">Skills</a></li>
+                <li><a href="index.html#projects">Projects</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+                    <span></span><span></span>
+                </button>
             </div>
         </nav>
     </header>
 
     <section id="courses" class="courses-section">
         <div class="container">
-            <div class="section-head">
+            <div class="section-head" data-reveal="up">
                 <span class="section-eyebrow">Academics</span>
-                <h2 class="section-title">Key Courses</h2>
+                <h2 class="section-title" data-split>Key Courses</h2>
+                <p class="section-lede">Coursework spanning machine learning, optimization, algorithms, and data systems from the University of Toronto Engineering Science program.</p>
             </div>
-            <p class="courses-subtitle">
-                Coursework spanning machine learning, optimization, algorithms, and data systems from the University of Toronto Engineering Science program.
-            </p>
 
-            <div class="courses-map">
+            <div class="courses-map" data-stagger>
 
                 <!-- Machine Learning & AI -->
                 <div class="course-category cat-ml">
                     <div class="course-cat-header">
                         <div class="course-cat-icon"><i class="fas fa-brain"></i></div>
                         <div>
-                            <h3>Machine Learning & AI</h3>
+                            <h3>Machine Learning &amp; AI</h3>
                             <span class="course-cat-count">5 courses</span>
                         </div>
                     </div>
@@ -73,45 +72,35 @@
                             <span class="course-code">ECE421</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Machine Learning</p>
-                                <div class="course-entry-tags">
-                                    <span>Python</span><span>PyTorch</span><span>Neural Networks</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Python</span><span>PyTorch</span><span>Neural Networks</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">ECE368</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Probabilistic Machine Learning</p>
-                                <div class="course-entry-tags">
-                                    <span>Bayesian Inference</span><span>Probabilistic Modeling</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Bayesian Inference</span><span>Probabilistic Modeling</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">ROB311</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Artificial Intelligence</p>
-                                <div class="course-entry-tags">
-                                    <span>AI Algorithms</span><span>Decision Making</span>
-                                </div>
+                                <div class="course-entry-tags"><span>AI Algorithms</span><span>Decision Making</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">MIE424</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Optimization in Machine Learning</p>
-                                <div class="course-entry-tags">
-                                    <span>Gradient Descent</span><span>Regularization</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Gradient Descent</span><span>Regularization</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">MIE429</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Machine Intelligence Capstone</p>
-                                <div class="course-entry-tags">
-                                    <span>ML Systems</span><span>Applied AI</span>
-                                </div>
+                                <div class="course-entry-tags"><span>ML Systems</span><span>Applied AI</span></div>
                             </div>
                         </div>
                     </div>
@@ -122,7 +111,7 @@
                     <div class="course-cat-header">
                         <div class="course-cat-icon"><i class="fas fa-chart-line"></i></div>
                         <div>
-                            <h3>Mathematics & Statistics</h3>
+                            <h3>Mathematics &amp; Statistics</h3>
                             <span class="course-cat-count">4 courses</span>
                         </div>
                     </div>
@@ -131,36 +120,28 @@
                             <span class="course-code">MIE376</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Mathematical Programming</p>
-                                <div class="course-entry-tags">
-                                    <span>Linear Programming</span><span>Convex Optimization</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Linear Programming</span><span>Convex Optimization</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">STA302</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Methods of Data Analysis</p>
-                                <div class="course-entry-tags">
-                                    <span>Regression Analysis</span><span>Hypothesis Testing</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Regression Analysis</span><span>Hypothesis Testing</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">ECE286</span>
                             <div class="course-entry-body">
-                                <p class="course-entry-name">Probability & Statistics</p>
-                                <div class="course-entry-tags">
-                                    <span>Probability Theory</span><span>Statistical Inference</span>
-                                </div>
+                                <p class="course-entry-name">Probability &amp; Statistics</p>
+                                <div class="course-entry-tags"><span>Probability Theory</span><span>Statistical Inference</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">MIE451</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Decision Support Systems</p>
-                                <div class="course-entry-tags">
-                                    <span>Decision Theory</span><span>Data Analytics</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Decision Theory</span><span>Data Analytics</span></div>
                             </div>
                         </div>
                     </div>
@@ -171,7 +152,7 @@
                     <div class="course-cat-header">
                         <div class="course-cat-icon"><i class="fas fa-code"></i></div>
                         <div>
-                            <h3>Algorithms & Theory</h3>
+                            <h3>Algorithms &amp; Theory</h3>
                             <span class="course-cat-count">4 courses</span>
                         </div>
                     </div>
@@ -180,36 +161,28 @@
                             <span class="course-code">ECE345</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Algorithms and Data Structures</p>
-                                <div class="course-entry-tags">
-                                    <span>C++</span><span>Algorithm Design</span>
-                                </div>
+                                <div class="course-entry-tags"><span>C++</span><span>Algorithm Design</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">ECE358</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Foundations of Computing</p>
-                                <div class="course-entry-tags">
-                                    <span>Complexity Analysis</span><span>Formal Languages</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Complexity Analysis</span><span>Formal Languages</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">ESC190</span>
                             <div class="course-entry-body">
-                                <p class="course-entry-name">Computer Algorithms & Data Structures</p>
-                                <div class="course-entry-tags">
-                                    <span>Algorithms</span><span>Python</span>
-                                </div>
+                                <p class="course-entry-name">Computer Algorithms &amp; Data Structures</p>
+                                <div class="course-entry-tags"><span>Algorithms</span><span>Python</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">ESC180</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Introduction to Computer Programming</p>
-                                <div class="course-entry-tags">
-                                    <span>Python</span><span>Problem Solving</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Python</span><span>Problem Solving</span></div>
                             </div>
                         </div>
                     </div>
@@ -220,7 +193,7 @@
                     <div class="course-cat-header">
                         <div class="course-cat-icon"><i class="fas fa-database"></i></div>
                         <div>
-                            <h3>Systems & Data</h3>
+                            <h3>Systems &amp; Data</h3>
                             <span class="course-cat-count">3 courses</span>
                         </div>
                     </div>
@@ -229,27 +202,21 @@
                             <span class="course-code">CSC343</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Introduction to Databases</p>
-                                <div class="course-entry-tags">
-                                    <span>SQL</span><span>Database Design</span>
-                                </div>
+                                <div class="course-entry-tags"><span>SQL</span><span>Database Design</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">ECE353</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Systems Software</p>
-                                <div class="course-entry-tags">
-                                    <span>OS Concepts</span><span>C Programming</span>
-                                </div>
+                                <div class="course-entry-tags"><span>OS Concepts</span><span>C Programming</span></div>
                             </div>
                         </div>
                         <div class="course-entry">
                             <span class="course-code">ECE352</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Computer Organization</p>
-                                <div class="course-entry-tags">
-                                    <span>Computer Architecture</span><span>Assembly</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Computer Architecture</span><span>Assembly</span></div>
                             </div>
                         </div>
                     </div>
@@ -260,7 +227,7 @@
                     <div class="course-cat-header">
                         <div class="course-cat-icon"><i class="fas fa-graduation-cap"></i></div>
                         <div>
-                            <h3>Research & Capstone</h3>
+                            <h3>Research &amp; Capstone</h3>
                             <span class="course-cat-count">1 course</span>
                         </div>
                     </div>
@@ -269,9 +236,7 @@
                             <span class="course-code">ESC499Y</span>
                             <div class="course-entry-body">
                                 <p class="course-entry-name">Thesis</p>
-                                <div class="course-entry-tags">
-                                    <span>Research</span><span>Machine Learning</span><span>Technical Writing</span>
-                                </div>
+                                <div class="course-entry-tags"><span>Research</span><span>Machine Learning</span><span>Technical Writing</span></div>
                             </div>
                         </div>
                     </div>
@@ -281,15 +246,32 @@
         </div>
     </section>
 
-    <footer>
-        <div class="container">
-            <p>&copy; <span class="footer-year">2026</span> Hassan Khurram. All rights reserved.</p>
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <a href="index.html" class="logo">HK</a>
+                <p>Data · Machine Learning · Cloud.<br>Built with care in Toronto.</p>
+            </div>
+            <ul class="footer-links">
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#experience">Experience</a></li>
+                <li><a href="index.html#projects">Projects</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+            </ul>
             <div class="social-links">
-                <a href="https://linkedin.com/in/hkhurram147" target="_blank"><i class="fab fa-linkedin"></i></a>
-                <a href="https://github.com/hkhurram147" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="https://linkedin.com/in/hkhurram147" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/hkhurram147" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                <a href="mailto:hkhurram122@gmail.com" aria-label="Email"><i class="far fa-envelope"></i></a>
             </div>
         </div>
+        <div class="container footer-bottom">
+            <p>&copy; <span class="footer-year">2026</span> Hassan Khurram. All rights reserved.</p>
+            <p>Designed &amp; built by Hassan Khurram</p>
+        </div>
     </footer>
+
+    <button class="back-to-top" id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 
     <script src="js/script.js"></script>
 </body>
