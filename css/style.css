@@ -2164,17 +2164,62 @@ section {
    RESPONSIVE — 640px
    ============================================= */
 @media (max-width: 640px) {
+    /* Tighter rhythm so sections don't feel endless on a phone */
+    section { padding: 3.75rem 0; }
+    .container { width: 100%; padding: 0 18px; }
+    .section-head { margin-bottom: 2.25rem; }
+
+    .hero { padding-top: 88px; padding-bottom: 1.5rem; }
+    .hero-content { padding: 1.5rem 0 0; gap: 2rem; }
+    .hero-subtitle { font-size: 1rem; }
+    .hero-description { font-size: 0.96rem; line-height: 1.7; }
+    .hero-roles { font-size: 1.15rem; }
+    .profile-chip { display: none; }
+    .cursor-glow { display: none; }
+
+    /* Full-width tap targets read better than two half-buttons */
+    .cta-buttons { gap: 0.6rem; }
+    .cta-buttons .btn { flex: 1 1 100%; justify-content: center; }
+
+    .marquee { padding: 0.85rem 0; }
+    .marquee-track { gap: 1.6rem; }
+    .marquee-track span { font-size: 0.85rem; }
+
     .skills-map, .courses-map, .projects-grid { grid-template-columns: 1fr; }
+
     .stats-container { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
     .stat-item { padding: 1.4rem 1rem 1.2rem; }
     .stat-number { font-size: 2.2rem; }
+    /* The "Currently" card carries the most text — give it the full row */
+    .stat-now { grid-column: 1 / -1; }
+
+    .project-image-container,
+    .gei-card .project-image-container { height: 190px; }
+    .project-content { padding: 1.1rem; }
+    .project-card h3 { font-size: 1.08rem; }
+
     .form-row { grid-template-columns: 1fr; gap: 0; }
     .contact-form { padding: 1.5rem; }
     .education-header { flex-direction: column; text-align: center; gap: 1.1rem; }
     .education-cta { display: flex; justify-content: center; }
     .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
-    .cursor-glow { display: none; }
-    .profile-chip { display: none; }
+
+    /* Large blurred surfaces are expensive to compose on phones */
+    .hero-blob-1 { width: 340px; height: 340px; filter: blur(48px); }
+    .hero-blob-2 { width: 280px; height: 280px; filter: blur(48px); }
+    .profile-halo { filter: blur(24px); animation: none; }
+}
+
+/* =============================================
+   RESPONSIVE — 400px (small phones)
+   ============================================= */
+@media (max-width: 400px) {
+    .container { padding: 0 14px; }
+    .hero-name { font-size: 2.5rem; }
+    .stats-container { grid-template-columns: 1fr; }
+    .nav-pill { padding: 0.35rem 0.4rem 0.35rem 0.9rem; gap: 0.5rem; }
+    .nav-links a { font-size: 1.35rem; }
+    .back-to-top { bottom: 1.15rem; right: 1.15rem; }
 }
 
 /* =============================================

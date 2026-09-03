@@ -307,8 +307,12 @@ document.addEventListener('DOMContentLoaded', function() {
             progressBar.style.width = docHeight > 0 ? (scrollY / docHeight) * 100 + '%' : '0%';
         }
 
-        // Hero parallax: text drifts up and fades, portrait drifts slower
-        if (!prefersReducedMotion && hero && scrollY < vh) {
+        // Hero parallax: text drifts up and fades, portrait drifts slower.
+        // Desktop layout only — on a phone the hero is a single column, so
+        // fading it would dim content that is still on screen.
+        const wideLayout = window.innerWidth > 992;
+
+        if (!prefersReducedMotion && hero && wideLayout && scrollY < vh) {
             const t = scrollY / vh;
             if (heroText) {
                 heroText.style.transform = 'translateY(' + (scrollY * 0.18) + 'px)';
@@ -317,6 +321,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (profileArea) {
                 profileArea.style.transform = 'translateY(' + (scrollY * 0.08) + 'px)';
             }
+        } else if (!wideLayout && heroText && heroText.style.transform) {
+            // Clear leftovers if the viewport was resized down from desktop
+            heroText.style.transform = '';
+            heroText.style.opacity = '';
+            if (profileArea) profileArea.style.transform = '';
         }
 
         // Timeline line draws as you scroll through the section
