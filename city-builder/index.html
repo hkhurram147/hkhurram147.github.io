@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CityScape — City Map Builder</title>
+<meta name="description" content="Design your own city map: sketch free-flowing roads and highways, paint districts, parks and rivers. Zoom, pan, save and export your city.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="logo">🏙️</span>
+    <input id="cityName" type="text" value="New City" maxlength="32" spellcheck="false" aria-label="City name">
+  </div>
+  <div class="topbar-actions">
+    <button id="btnUndo" title="Undo (Ctrl+Z)" disabled>↩ Undo</button>
+    <button id="btnRedo" title="Redo (Ctrl+Y)" disabled>↪ Redo</button>
+    <span class="sep"></span>
+    <button id="btnZoomOut" title="Zoom out (-)">−</button>
+    <span id="zoomLabel" title="Current zoom">100%</span>
+    <button id="btnZoomIn" title="Zoom in (+)">+</button>
+    <button id="btnFit" title="Fit city to screen (0)">Fit</button>
+    <span class="sep"></span>
+    <button id="btnGrid" class="active" title="Toggle reference dots (G)">Dots</button>
+    <span class="sep"></span>
+    <button id="btnSave" title="Save to browser (Ctrl+S)">Save</button>
+    <button id="btnExport" title="Export map as PNG image">Export PNG</button>
+    <button id="btnClear" class="danger" title="Start over with an empty map">Clear</button>
+  </div>
+</header>
+
+<aside id="toolbar">
+  <div class="tool-group-label">Edit</div>
+  <button class="tool" data-tool="select" title="Select / move — click an element, drag it, drag road endpoints, Delete to remove (1)"><span class="swatch sel">⬚</span>Select</button>
+  <button class="tool" data-tool="pan"    title="Pan the map — or hold Space / drag right mouse button anytime"><span class="swatch pan">✋</span>Pan</button>
+  <button class="tool" data-tool="erase"  title="Bulldoze — click or drag across things to delete them (E)"><span class="swatch erase">✕</span>Erase</button>
+
+  <div class="tool-group-label">Roads</div>
+  <button class="tool" data-tool="highway" title="Sketch a highway — drag freely, hold Shift for a straight line (2)"><span class="swatch highway"></span>Highway</button>
+  <button class="tool" data-tool="avenue"  title="Sketch an avenue — wide city road (3)"><span class="swatch avenue"></span>Avenue</button>
+  <button class="tool" data-tool="street"  title="Sketch a street — drag freely (4)"><span class="swatch street"></span>Street</button>
+  <button class="tool" data-tool="path"    title="Sketch a footpath or trail (5)"><span class="swatch path"></span>Path</button>
+
+  <div class="tool-group-label">Districts</div>
+  <button class="tool" data-tool="res"  title="Draw a loop to zone a residential district — houses appear inside (6)"><span class="swatch res"></span>Homes</button>
+  <button class="tool" data-tool="com"  title="Draw a loop to zone a commercial district — offices appear inside (7)"><span class="swatch com"></span>Offices</button>
+  <button class="tool" data-tool="ind"  title="Draw a loop to zone an industrial district (8)"><span class="swatch ind"></span>Industry</button>
+
+  <div class="tool-group-label">Nature</div>
+  <button class="tool" data-tool="park"  title="Draw a loop to plant a park (9)"><span class="swatch park"></span>Park</button>
+  <button class="tool" data-tool="water" title="Draw a loop to fill with water — lakes & rivers (W)"><span class="swatch water"></span>Water</button>
+
+  <div class="tool-group-label">Extras</div>
+  <button class="tool" data-tool="label" title="Click to place a name label (L)"><span class="swatch label">A</span>Label</button>
+</aside>
+
+<main id="stage">
+  <canvas id="map"></canvas>
+
+  <div id="stats">
+    <div class="stat"><span class="dot pop"></span><span id="statPop">0</span> residents</div>
+    <div class="stat"><span class="dot jobs"></span><span id="statJobs">0</span> jobs</div>
+    <div class="stat"><span class="dot rd"></span><span id="statRoads">0.0</span> km roads</div>
+    <div class="stat"><span class="dot pk"></span><span id="statParks">0</span> parks</div>
+  </div>
+
+  <canvas id="minimap" width="160" height="160" title="Minimap — click to jump"></canvas>
+
+  <div id="hint">
+    <b>Drag</b> to sketch roads &nbsp;·&nbsp; <b>Loop</b> to paint districts &nbsp;·&nbsp; <b>Scroll</b> zoom &nbsp;·&nbsp; <b>Right-drag</b> pan &nbsp;·&nbsp; <b>Shift</b> straight
+    <button id="hintClose" title="Dismiss">✕</button>
+  </div>
+
+  <div id="toast"></div>
+</main>
+
+<script src="game.js"></script>
+</body>
+</html>
