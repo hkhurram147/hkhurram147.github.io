@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hassan Khurram | Data Scientist & Engineer</title>
     <meta name="description" content="Hassan Khurram — Engineering Science (Machine Intelligence) graduate from the University of Toronto, building data-driven analytics and machine learning solutions.">
+    <link rel="icon" href="images/uoft-logo.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,92 +29,114 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-    
+
       gtag('config', 'G-XLJ28W25HB');
     </script>
 </head>
 <body>
     <div class="scroll-progress" aria-hidden="true"></div>
-    <header>
-        <nav>
-            <div class="container">
-                <div class="logo">HK</div>
-                <ul class="nav-links">
-                    <li><a href="#home" class="active">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#education">Education</a></li>
-                    <li><a href="courses.html">Courses</a></li>
-                    <li><a href="#experience">Experience</a></li>
-                    <li><a href="#skills">Skills</a></li>
-                    <li><a href="#projects">Projects</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-                <div class="nav-actions">
-                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <div class="burger" id="burger" aria-label="Toggle menu">
-                        <div></div>
-                        <div></div>
-                        <div></div>
-                    </div>
-                </div>
+    <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+    <header class="site-header" id="siteHeader">
+        <nav class="nav-pill" aria-label="Primary">
+            <a href="#home" class="logo" aria-label="Home">HK</a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home" class="active">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#education">Education</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+                    <span></span><span></span>
+                </button>
             </div>
         </nav>
     </header>
 
+    <!-- ===================== HERO ===================== -->
     <section id="home" class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <p class="hello-text">Hello, I'm</p>
-                    <h1 class="hero-name">Hassan <span class="last-name">Khurram</span></h1>
-                    <p class="hero-roles"><span class="typed-text" id="typedText" data-roles="Data Scientist|Machine Learning Engineer|Cloud Developer|AI Builder"></span><span class="typed-caret" aria-hidden="true"></span></p>
-                    <p class="hero-subtitle">Engineering Science (Machine Learning) Graduate from The University of Toronto</p>
-                    <p class="hero-description">
-                        I transform data into insight and insight into action.  
-                        Blending advanced analytics with AI&nbsp;/ machine learning, I build scalable, business-focused solutions that uncover patterns, drive decisions, and solve complex real-world problems.
-                      </p>
-                    <div class="cta-buttons">
-                        <a href="#projects" class="btn primary">View My Work <i class="fas fa-arrow-right"></i></a>
-                        <a href="Hassan_Khurram_Resume.pdf" download class="btn secondary">Download CV <i class="fas fa-download"></i></a>
-                    </div>
-                    <div class="social-icons">
-                        <a href="https://github.com/hkhurram147" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
-                        <a href="https://linkedin.com/in/hkhurram147" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="mailto:hkhurram122@gmail.com" aria-label="Email"><i class="far fa-envelope"></i></a>
-                    </div>
+        <div class="hero-bg" aria-hidden="true">
+            <div class="hero-grid"></div>
+            <div class="hero-blob hero-blob-1"></div>
+            <div class="hero-blob hero-blob-2"></div>
+        </div>
+
+        <div class="container hero-content">
+            <div class="hero-text" id="heroText">
+                <p class="hello-text">Hello, I'm</p>
+                <h1 class="hero-name">Hassan <span class="last-name">Khurram</span></h1>
+                <p class="hero-roles"><span class="typed-text" id="typedText" data-roles="Data Scientist|Machine Learning Engineer|Cloud Developer|AI Builder"></span><span class="typed-caret" aria-hidden="true"></span></p>
+                <p class="hero-subtitle">Engineering Science (Machine Intelligence) Graduate from the University of Toronto</p>
+                <p class="hero-description">
+                    I transform data into insight and insight into action.
+                    Blending advanced analytics with AI&nbsp;/ machine learning, I build scalable, business-focused solutions that uncover patterns, drive decisions, and solve complex real-world problems.
+                </p>
+                <div class="cta-buttons">
+                    <a href="#projects" class="btn primary">View My Work <i class="fas fa-arrow-right"></i></a>
+                    <a href="Hassan_Khurram_Resume.pdf" download class="btn secondary">Download CV <i class="fas fa-download"></i></a>
                 </div>
-                <div class="profile-area">
-                    <div class="profile-circle">
-                        <img src="images/IMG_0930.jpg" alt="Hassan Khurram">
-                    </div>
+                <div class="social-icons">
+                    <a href="https://github.com/hkhurram147" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://linkedin.com/in/hkhurram147" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="mailto:hkhurram122@gmail.com" aria-label="Email"><i class="far fa-envelope"></i></a>
                 </div>
             </div>
+
+            <div class="profile-area" id="profileArea">
+                <div class="profile-halo" aria-hidden="true"></div>
+                <div class="profile-circle">
+                    <img src="images/IMG_0930.jpg" alt="Hassan Khurram">
+                </div>
+                <div class="profile-chip profile-chip-1" aria-hidden="true"><i class="fas fa-brain"></i> Machine Learning</div>
+                <div class="profile-chip profile-chip-2" aria-hidden="true"><i class="fas fa-cloud"></i> Cloud &amp; Data</div>
+                <div class="profile-chip profile-chip-3" aria-hidden="true"><i class="fas fa-file-alt"></i> AAAI 2023</div>
+            </div>
         </div>
+
         <a href="#about" class="scroll-cue" aria-label="Scroll to About section"><i class="fas fa-chevron-down"></i></a>
     </section>
 
+    <!-- ===================== TECH MARQUEE ===================== -->
+    <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+            <span>Python</span><i></i><span>PyTorch</span><i></i><span>TensorFlow</span><i></i><span>Scikit-learn</span><i></i>
+            <span>AWS</span><i></i><span>Google Cloud</span><i></i><span>Kubernetes</span><i></i><span>Docker</span><i></i>
+            <span>BigQuery</span><i></i><span>PySpark</span><i></i><span>Airflow</span><i></i><span>SQL</span><i></i>
+            <span>LLMs</span><i></i><span>RAG</span><i></i><span>Spring Boot</span><i></i><span>React</span><i></i>
+            <span>Python</span><i></i><span>PyTorch</span><i></i><span>TensorFlow</span><i></i><span>Scikit-learn</span><i></i>
+            <span>AWS</span><i></i><span>Google Cloud</span><i></i><span>Kubernetes</span><i></i><span>Docker</span><i></i>
+            <span>BigQuery</span><i></i><span>PySpark</span><i></i><span>Airflow</span><i></i><span>SQL</span><i></i>
+            <span>LLMs</span><i></i><span>RAG</span><i></i><span>Spring Boot</span><i></i><span>React</span><i></i>
+        </div>
+    </div>
+
+    <!-- ===================== ABOUT ===================== -->
     <section id="about" class="about">
         <div class="container">
-            <div class="section-head">
+            <div class="section-head" data-reveal="up">
                 <span class="section-eyebrow">01 · Who I Am</span>
-                <h2 class="section-title">About Me</h2>
+                <h2 class="section-title" data-split>About Me</h2>
             </div>
-            <div class="about-content">
-                <div class="about-text">
+            <div class="about-grid">
+                <div class="about-text" data-reveal="left">
                     <p>I'm a data and analytics practitioner and a new graduate with a BASc in Engineering Science (Machine Intelligence major) from the University of Toronto. With experience as a Data Scientist at Scotiabank, projects, and a background in research, I specialize in building scalable data-driven analytics and machine learning solutions that drive business value.</p>
-
                     <p>My expertise includes predictive modeling, optimization algorithms, and data pipeline engineering. I'm passionate about translating complex data problems into actionable insights and developing innovative AI solutions.</p>
-                    <div class="keywords-container">
+                    <div class="keywords-container" data-stagger>
                         <span class="keyword">Data Analytics</span>
-                        <span class="keyword">Data Science & Engineering</span>
+                        <span class="keyword">Data Science &amp; Engineering</span>
                         <span class="keyword">ML Engineering</span>
                         <span class="keyword">AI Development</span>
                         <span class="keyword">Research</span>
                     </div>
                 </div>
-                <div class="stats-container">
+                <div class="stats-container" data-stagger>
                     <div class="stat-item">
                         <div class="stat-number">4+</div>
                         <div class="stat-label">Years Academic Experience</div>
@@ -126,26 +149,32 @@
                         <div class="stat-number">2+</div>
                         <div class="stat-label">Years of Work Experience</div>
                     </div>
+                    <div class="stat-item stat-now">
+                        <div class="stat-now-label"><span class="live-dot"></span> Currently</div>
+                        <div class="stat-now-role">Developer @ Scotiabank</div>
+                        <div class="stat-label">Cloud Engineering · Core Banking Technology</div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- ===================== EDUCATION ===================== -->
     <section id="education" class="education-section">
         <div class="container">
-            <div class="section-head">
+            <div class="section-head" data-reveal="up">
                 <span class="section-eyebrow">02 · Background</span>
-                <h2 class="section-title">Education</h2>
+                <h2 class="section-title" data-split>Education</h2>
             </div>
-            <div class="education-card">
+            <div class="education-card" data-reveal="scale">
                 <div class="education-header">
                     <div class="education-logo">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="University of Toronto">
+                        <img src="images/uoft-logo.svg" alt="University of Toronto">
                     </div>
                     <div class="education-info">
                         <h3>University of Toronto</h3>
                         <p>BASc in Engineering Science, Machine Intelligence Major</p>
-                        <p><strong>Graduated:</strong> April 2025</p>
+                        <p class="education-meta"><i class="fas fa-graduation-cap"></i> Graduated April 2025 &nbsp;·&nbsp; <i class="fas fa-map-marker-alt"></i> Toronto, Canada</p>
                     </div>
                 </div>
                 <div class="education-cta">
@@ -157,14 +186,17 @@
         </div>
     </section>
 
+    <!-- ===================== EXPERIENCE ===================== -->
     <section id="experience" class="timeline-section">
         <div class="container">
-            <div class="section-head">
+            <div class="section-head" data-reveal="up">
                 <span class="section-eyebrow">03 · Career</span>
-                <h2 class="section-title">Experience</h2>
+                <h2 class="section-title" data-split>Experience</h2>
             </div>
-            <div class="timeline-container">
-                <div class="timeline-item">
+            <div class="timeline-container" id="timeline">
+                <div class="timeline-line" aria-hidden="true"><div class="timeline-line-fill"></div></div>
+
+                <div class="timeline-item" data-reveal="up">
                     <div class="timeline-marker"></div>
                     <div class="timeline-date">Sep 2024 - Present</div>
                     <div class="timeline-content">
@@ -195,8 +227,8 @@
                         </button>
                     </div>
                 </div>
-                
-                <div class="timeline-item">
+
+                <div class="timeline-item" data-reveal="up">
                     <div class="timeline-marker"></div>
                     <div class="timeline-date">May 2023 - Aug 2024</div>
                     <div class="timeline-content">
@@ -227,15 +259,15 @@
                         </button>
                     </div>
                 </div>
-                
-                <div class="timeline-item">
+
+                <div class="timeline-item" data-reveal="up">
                     <div class="timeline-marker"></div>
                     <div class="timeline-date">May 2022 - Aug 2022</div>
                     <div class="timeline-content">
                         <div class="timeline-header-row">
                             <h3 class="timeline-title">University of Toronto</h3>
                             <div class="timeline-logo">
-                                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="University of Toronto">
+                                <img src="images/uoft-logo.svg" alt="University of Toronto">
                             </div>
                         </div>
                         <div class="timeline-role-block">
@@ -259,17 +291,15 @@
                         </button>
                     </div>
                 </div>
-                
-                
-                
-                <div class="timeline-item">
+
+                <div class="timeline-item" data-reveal="up">
                     <div class="timeline-marker"></div>
                     <div class="timeline-date">Jan 2021 - Apr 2021</div>
                     <div class="timeline-content">
                         <div class="timeline-header-row">
                             <h3 class="timeline-title">University of Toronto Machine Intelligence Club</h3>
                             <div class="timeline-logo">
-                                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="UofT ML Club">
+                                <img src="images/uoft-logo.svg" alt="UofT Machine Intelligence Club">
                             </div>
                         </div>
                         <div class="timeline-role-block">
@@ -296,21 +326,19 @@
         </div>
     </section>
 
+    <!-- ===================== SKILLS ===================== -->
     <section id="skills" class="skills">
         <div class="container">
-            <div class="section-head">
+            <div class="section-head" data-reveal="up">
                 <span class="section-eyebrow">04 · Toolkit</span>
-                <h2 class="section-title">Skills</h2>
+                <h2 class="section-title" data-split>Skills</h2>
             </div>
-            <div class="skills-map">
+            <div class="skills-map" data-stagger>
 
-                <!-- Programming -->
                 <div class="skill-map-card smc-blue">
                     <div class="smc-header">
                         <div class="smc-icon"><i class="fas fa-code"></i></div>
-                        <div>
-                            <h3>Programming & Automation</h3>
-                        </div>
+                        <h3>Programming &amp; Automation</h3>
                     </div>
                     <div class="smc-tags">
                         <span>Python</span><span>Java</span><span>JavaScript</span>
@@ -320,13 +348,10 @@
                     </div>
                 </div>
 
-                <!-- Machine Learning -->
                 <div class="skill-map-card smc-green">
                     <div class="smc-header">
                         <div class="smc-icon"><i class="fas fa-brain"></i></div>
-                        <div>
-                            <h3>Machine Learning & AI</h3>
-                        </div>
+                        <h3>Machine Learning &amp; AI</h3>
                     </div>
                     <div class="smc-tags">
                         <span>Scikit-learn</span><span>Pandas</span><span>NumPy</span>
@@ -337,13 +362,10 @@
                     </div>
                 </div>
 
-                <!-- Cloud & Tools -->
                 <div class="skill-map-card smc-teal">
                     <div class="smc-header">
                         <div class="smc-icon"><i class="fas fa-cloud"></i></div>
-                        <div>
-                            <h3>Cloud & Tools</h3>
-                        </div>
+                        <h3>Cloud &amp; Tools</h3>
                     </div>
                     <div class="smc-tags">
                         <span>Google Cloud Platform</span><span>AWS</span><span>Azure</span>
@@ -352,13 +374,10 @@
                     </div>
                 </div>
 
-                <!-- Data & Databases -->
                 <div class="skill-map-card smc-violet">
                     <div class="smc-header">
                         <div class="smc-icon"><i class="fas fa-database"></i></div>
-                        <div>
-                            <h3>Data & Databases</h3>
-                        </div>
+                        <h3>Data &amp; Databases</h3>
                     </div>
                     <div class="smc-tags">
                         <span>SQL</span><span>Data Modeling</span><span>Data Validation</span>
@@ -367,13 +386,10 @@
                     </div>
                 </div>
 
-                <!-- Professional -->
                 <div class="skill-map-card smc-amber">
                     <div class="smc-header">
                         <div class="smc-icon"><i class="fas fa-users"></i></div>
-                        <div>
-                            <h3>Professional Skills</h3>
-                        </div>
+                        <h3>Professional Skills</h3>
                     </div>
                     <div class="smc-tags">
                         <span>Team Leadership</span><span>Communication</span>
@@ -387,22 +403,18 @@
         </div>
     </section>
 
+    <!-- ===================== PROJECTS ===================== -->
     <section id="projects" class="projects">
         <div class="container">
-            <div class="section-head">
+            <div class="section-head" data-reveal="up">
                 <span class="section-eyebrow">05 · Selected Work</span>
-                <h2 class="section-title">Projects</h2>
+                <h2 class="section-title" data-split>Projects</h2>
             </div>
-            <div class="projects-grid">
-                
+            <div class="projects-grid" data-stagger>
+
                 <div class="project-card">
                     <div class="project-image-container">
                         <img src="project_images/image_room.png" alt="Home AI Interior Designer">
-                    </div>
-                    <div class="project-header">
-                        <div class="project-logo">
-                            <img src="https://placehold.co/100x100/031D44/ffffff?text=AI" alt="Home AI">
-                        </div>
                         <span class="project-badge">Personal</span>
                     </div>
                     <div class="project-content">
@@ -415,6 +427,7 @@
                             <span>Python</span>
                             <span>DALL-E 3</span>
                         </div>
+                        <p class="project-tagline"><i class="fas fa-trophy"></i> Winner, AMD Canada-wide Innovation Showcase</p>
                         <button class="see-more-btn">
                             See More <i class="fas fa-chevron-down"></i>
                         </button>
@@ -434,7 +447,6 @@
                         </div>
                         <div class="project-expanded-content">
                             <p>The Home AI project leverages cutting-edge AI technologies to make bedroom design accessible to everyone. This web application allows users to enter natural language descriptions of their ideal bedroom styling and generates photorealistic visualizations of those designs.</p>
-                            
                             <p>Key technical features:</p>
                             <ul>
                                 <li>Fine-tuned Stable Diffusion model specifically for interior bedroom designs</li>
@@ -443,23 +455,21 @@
                                 <li>GPT-4 integration to translate user descriptions into optimal prompts for image generation</li>
                                 <li>Advanced image refinement techniques to ensure photorealistic outputs</li>
                             </ul>
-                            
                             <p>This project won the AMD Canada-wide Innovation Showcase Competition for its innovative approach to accessibility in interior design. It demonstrates the potential of AI to democratize creative fields previously limited to professionals with specialized training.</p>
                         </div>
                     </div>
                 </div>
-                
-                <div class="project-card gei-card">
+
+                <div class="project-card">
                     <div class="project-image-container">
                         <img src="project_images/gei_chatbot.png" alt="RAG Chatbot for Engineering Reports">
-                    </div>
-                    <div class="project-header">
-                        <div class="project-logo">
-                            <img src="images/GEIlg_800_800_s.png" alt="GEI Consultants">
-                        </div>
                         <span class="project-badge">Capstone</span>
                     </div>
                     <div class="project-content">
+                        <div class="project-partner">
+                            <img src="images/GEIlg_800_800_s.png" alt="GEI Consultants">
+                            <span>Built for GEI Consultants</span>
+                        </div>
                         <h3>RAG Chatbot for Engineering Consulting Reports</h3>
                         <div class="project-tech-stack">
                             <span>Python</span>
@@ -468,6 +478,7 @@
                             <span>ChatGPT API</span>
                             <span>Flask</span>
                         </div>
+                        <p class="project-tagline"><i class="fas fa-check-circle"></i> Approved for cloud deployment after VP demo</p>
                         <button class="see-more-btn">
                             See More <i class="fas fa-chevron-down"></i>
                         </button>
@@ -487,7 +498,6 @@
                         </div>
                         <div class="project-expanded-content">
                             <p>This capstone project was developed for GEI Consultants, Inc., a leading engineering consulting firm specializing in environmental, water resources, and geotechnical projects. The problem they faced was information retrieval from thousands of technical reports accumulated over decades.</p>
-                            
                             <p>I designed a comprehensive solution featuring:</p>
                             <ul>
                                 <li>Document processing pipeline with OCR for legacy documents</li>
@@ -496,23 +506,21 @@
                                 <li>Prompt engineering for effective RAG implementations</li>
                                 <li>User-friendly web interface with chat history and document citations</li>
                             </ul>
-                            
                             <p>The system demonstrated 85% accuracy in retrieval tasks and reduced information access time from hours to seconds.</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="project-card">
                     <div class="project-image-container">
                         <img src="project_images/clustering.png.png" alt="Scalable Clustering Algorithm">
-                    </div>
-                    <div class="project-header">
-                        <div class="project-logo">
-                            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="University of Toronto">
-                        </div>
                         <span class="project-badge">Research</span>
                     </div>
                     <div class="project-content">
+                        <div class="project-partner">
+                            <img src="images/uoft-logo.svg" alt="University of Toronto">
+                            <span>Data-Driven Decision Making Lab, UofT</span>
+                        </div>
                         <h3>Scalable Clustering Algorithm</h3>
                         <div class="project-tech-stack">
                             <span>MILP</span>
@@ -522,7 +530,7 @@
                         </div>
                         <div class="paper-link">
                             <a href="https://ojs.aaai.org/index.php/AAAI/article/view/25857" target="_blank" rel="noopener noreferrer">
-                                <i class="fas fa-file-alt"></i> Published in AAAI 2023 Conference
+                                <i class="fas fa-file-alt"></i> Published in AAAI 2023
                             </a>
                         </div>
                         <button class="see-more-btn">
@@ -544,7 +552,6 @@
                         </div>
                         <div class="project-expanded-content">
                             <p>This research project addressed fundamental limitations in existing clustering algorithms. Working in the Data-Driven Decision Making Lab at the University of Toronto, I developed a novel approach to the k-center clustering problem using mixed-integer linear programming.</p>
-                            
                             <p>Key innovations included:</p>
                             <ul>
                                 <li>Formulation of the generalized L1 k-center clustering problem as a MILP</li>
@@ -553,23 +560,21 @@
                                 <li>Empirical evaluation across synthetic and real-world datasets</li>
                                 <li>Benchmarking against SOTA clustering algorithms</li>
                             </ul>
-                            
                             <p>The research demonstrated that our approach achieved global optimality with significantly better robustness to outliers compared to heuristic methods. The paper was accepted for publication at the AAAI 2023 Conference, one of the premier venues in artificial intelligence research.</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="project-card">
                     <div class="project-image-container">
                         <img src="project_images/audio_seq.png.png" alt="Audio Sequence Modeling">
-                    </div>
-                    <div class="project-header">
-                        <div class="project-logo">
-                            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Utoronto_coa.svg/1200px-Utoronto_coa.svg.png" alt="UofT ML Club">
-                        </div>
                         <span class="project-badge">UofT MI Club</span>
                     </div>
                     <div class="project-content">
+                        <div class="project-partner">
+                            <img src="images/uoft-logo.svg" alt="University of Toronto">
+                            <span>With Aercoustics Engineering Ltd.</span>
+                        </div>
                         <h3>Audio Sequence Modeling for Noise Pollution</h3>
                         <div class="project-tech-stack">
                             <span>Deep Learning</span>
@@ -577,6 +582,7 @@
                             <span>Spectrograms</span>
                             <span>TensorFlow</span>
                         </div>
+                        <p class="project-tagline"><i class="fas fa-arrow-trend-up"></i> +20% classification accuracy over baseline</p>
                         <button class="see-more-btn">
                             See More <i class="fas fa-chevron-down"></i>
                         </button>
@@ -596,13 +602,11 @@
                         </div>
                         <div class="project-expanded-content">
                             <p>As project lead for the University of Toronto Machine Intelligence Club, I led a team of 5 students to develop an audio classification system for environmental noise monitoring. This project was conducted in collaboration with Aercoustics Engineering Ltd.</p>
-                            
                             <div class="paper-link">
                                 <a href="https://utmist.gitlab.io/projects/wind-turbine-audibility/" target="_blank" rel="noopener noreferrer">
                                     <i class="fas fa-link"></i> View Project Page
                                 </a>
                             </div>
-                            
                             <p>Our technical approach included:</p>
                             <ul>
                                 <li>Collection and preprocessing of 1000+ hours of urban audio data</li>
@@ -611,70 +615,89 @@
                                 <li>Implementation of data augmentation techniques for robustness</li>
                                 <li>Deployment of models on edge devices for real-time monitoring</li>
                             </ul>
-                            
                             <p>The final system could classify 12 different urban noise types with 92% accuracy, representing a 20% improvement over baseline methods. The project resulted in a deployed solution that helps environmental agencies monitor and regulate noise pollution in urban settings.</p>
                         </div>
                     </div>
                 </div>
-                
+
             </div>
         </div>
     </section>
 
+    <!-- ===================== CONTACT ===================== -->
     <section id="contact" class="contact">
         <div class="container">
-            <div class="section-head">
+            <div class="section-head" data-reveal="up">
                 <span class="section-eyebrow">06 · Get In Touch</span>
-                <h2 class="section-title">Contact Me</h2>
+                <h2 class="section-title" data-split>Let's Build Something</h2>
+                <p class="section-lede">Have a role, a project, or a problem worth solving? I'd love to hear about it.</p>
             </div>
             <div class="contact-content">
-                <div class="contact-info">
-                    <div class="contact-item">
+                <div class="contact-info" data-stagger>
+                    <a class="contact-item" href="mailto:hkhurram122@gmail.com">
                         <i class="fas fa-envelope"></i>
-                        <p>hkhurram122@gmail.com</p>
-                    </div>
-                    <div class="contact-item">
+                        <div><span class="contact-label">Email</span><p>hkhurram122@gmail.com</p></div>
+                    </a>
+                    <a class="contact-item" href="tel:+14379906365">
                         <i class="fas fa-phone"></i>
-                        <p>(437)-990-6365</p>
-                    </div>
-                    <div class="contact-item">
+                        <div><span class="contact-label">Phone</span><p>(437) 990-6365</p></div>
+                    </a>
+                    <a class="contact-item" href="https://linkedin.com/in/hkhurram147" target="_blank" rel="noopener">
                         <i class="fab fa-linkedin"></i>
-                        <p><a href="https://linkedin.com/in/hkhurram147" target="_blank">linkedin.com/in/hkhurram147</a></p>
-                    </div>
-                    <div class="contact-item">
+                        <div><span class="contact-label">LinkedIn</span><p>linkedin.com/in/hkhurram147</p></div>
+                    </a>
+                    <a class="contact-item" href="https://github.com/hkhurram147" target="_blank" rel="noopener">
                         <i class="fab fa-github"></i>
-                        <p><a href="https://github.com/hkhurram147" target="_blank">github.com/hkhurram147</a></p>
-                    </div>
+                        <div><span class="contact-label">GitHub</span><p>github.com/hkhurram147</p></div>
+                    </a>
                 </div>
-                <div class="contact-form">
+                <div class="contact-form" data-reveal="right">
                     <form id="contactForm" action="https://formspree.io/f/xkgjqnwy" method="POST">
-                        <div class="form-group">
-                            <label for="name">Name</label>
-                            <input type="text" id="name" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" name="name" placeholder="Your name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="message">Message</label>
-                            <textarea id="message" name="message" rows="5" required></textarea>
+                            <textarea id="message" name="message" rows="5" placeholder="Tell me about it..." required></textarea>
                         </div>
                         <div id="form-status"></div>
-                        <button type="submit" class="btn primary">Send Message</button>
+                        <button type="submit" class="btn primary">Send Message <i class="fas fa-paper-plane"></i></button>
                     </form>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer>
-        <div class="container">
-            <p>&copy; <span class="footer-year">2026</span> Hassan Khurram. All rights reserved.</p>
-            <div class="social-links">
-                <a href="https://linkedin.com/in/hkhurram147" target="_blank"><i class="fab fa-linkedin"></i></a>
-                <a href="https://github.com/hkhurram147" target="_blank"><i class="fab fa-github"></i></a>
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <a href="#home" class="logo">HK</a>
+                <p>Data · Machine Learning · Cloud.<br>Built with care in Toronto.</p>
             </div>
+            <ul class="footer-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="social-links">
+                <a href="https://linkedin.com/in/hkhurram147" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/hkhurram147" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                <a href="mailto:hkhurram122@gmail.com" aria-label="Email"><i class="far fa-envelope"></i></a>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <p>&copy; <span class="footer-year">2026</span> Hassan Khurram. All rights reserved.</p>
+            <p>Designed &amp; built by Hassan Khurram</p>
         </div>
     </footer>
 
@@ -683,4 +706,4 @@
     <script src="js/script.js"></script>
     <script src="js/form-handler.js"></script>
 </body>
-</html> 
+</html>
